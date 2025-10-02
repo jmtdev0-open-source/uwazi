@@ -72,6 +72,8 @@ import { PageView } from './Pages/PageView';
 import ResetPassword from './Users/ResetPassword';
 import ConnectedUnlockAccount from './Users/UnlockAccount';
 import { NewRelMigrationDashboard } from './Settings/components/relV2MigrationDashboard';
+import EntityCompositionDemo from './V2/api/entities/composition/presentation/examples/EntityCompositionDemo';
+import EntityCompositionTestPage from './V2/api/entities/composition/presentation/examples/EntityCompositionTestPage';
 
 const getRoutesLayout = (
   settings: ClientSettings | undefined,
@@ -272,6 +274,8 @@ const getRoutesLayout = (
           settings?.features?.newRelationships ? <NewRelMigrationDashboard /> : <GeneralError />
         }
       />
+      <Route path="entity-composition" element={adminsOnlyRoute(<EntityCompositionTestPage />)} />
+      <Route path="entity-composition/:sharedId" element={adminsOnlyRoute(<EntityCompositionDemo />)} />
     </Route>
   </Route>
 );
