@@ -4,6 +4,7 @@
  */
 import { EntityRepository } from '../../domain/repositories/EntityRepository';
 import { EntityCompositionService } from '../../domain/services/EntityCompositionService';
+import { EntityCompositionServiceImpl } from '../../domain/services/EntityCompositionServiceImpl';
 import {
   LegacyMetadataFormatter,
   LegacyMetadataFormatterImpl,
@@ -48,9 +49,12 @@ export class DependencyContainer {
 
   getEntityCompositionService(): EntityCompositionService {
     if (!this.entityCompositionService) {
-      throw new Error('EntityCompositionService not registered');
+      this.entityCompositionService = new EntityCompositionServiceImpl(
+        this.getEntityRepository(),
+        this.getLegacyMetadataFormatter()
+      );
     }
-    return this.entityCompositionService;
+    return this.entityCompositionService!;
   }
 
   getLegacyMetadataFormatter(): LegacyMetadataFormatter {

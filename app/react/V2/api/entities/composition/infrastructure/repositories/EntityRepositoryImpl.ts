@@ -2,6 +2,8 @@
  * Entity Repository Implementation
  * Concrete implementation of EntityRepository
  */
+import { IncomingHttpHeaders } from 'http';
+import { getBySharedId } from '../../..';
 import { Entity } from '../../domain/entities/Entity';
 import { EntityRepository } from '../../domain/repositories/EntityRepository';
 import { CompositionOptions } from '../../types';
@@ -9,19 +11,20 @@ import { CompositionOptions } from '../../types';
 export class EntityRepositoryImpl implements EntityRepository {
   constructor(private readonly apiClient: any) {}
 
-  async findById(entityId: string, options?: CompositionOptions): Promise<Entity | null> {
+  async findBySharedId(entityId: string, _options?: CompositionOptions,
+    headers?: IncomingHttpHeaders): Promise<Entity | null> {
     try {
-      const queryParams = this.buildQueryParams(options);
-      const url = `/api/entities?sharedId=${entityId}&omitRelationships=true&include=["permissions"]`;
-      const response = await this.apiClient.get(url, {
-        params: queryParams,
-      });
+      const response = await this.apiClient.getBySharedId({
+        sharedId: entityId,
+        language: 'en',
+        omitRelationships: true,
+      }, headers);
 
-      if (!response.data) {
+      if (!response) {
         return null;
       }
 
-      return this.mapToEntity(response.data);
+      return this.mapToEntity(response);
     } catch (error) {
       console.error('Error fetching entity:', error);
       return null;
@@ -89,7 +92,7 @@ export class EntityRepositoryImpl implements EntityRepository {
   async save(entity: Entity): Promise<Entity> {
     try {
       const response = await this.apiClient.put(`/api/entities/${entity.id}`, entity.toJSON());
-      return this.mapToEntity(response.data);
+      return this.mapToEntity(response);
     } catch (error) {
       console.error('Error saving entity:', error);
       throw error;

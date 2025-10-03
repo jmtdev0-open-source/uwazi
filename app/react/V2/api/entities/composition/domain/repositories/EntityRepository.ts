@@ -4,9 +4,10 @@
  */
 import { Entity } from '../entities/Entity';
 import { CompositionOptions } from '../../types';
+import { IncomingHttpHeaders } from 'http';
 
 export interface EntityRepository {
-  findById(entityId: string, options?: CompositionOptions): Promise<Entity | null>;
+  findBySharedId(entityId: string, options?: CompositionOptions, headers?: IncomingHttpHeaders): Promise<Entity | null>;
   findByIds(entityIds: string[], options?: CompositionOptions): Promise<Entity[]>;
   findByTemplate(templateId: string, options?: CompositionOptions): Promise<Entity[]>;
   findByRelationship(

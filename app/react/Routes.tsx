@@ -279,7 +279,7 @@ const getRoutesLayout = (
       />
       <Route path="entity-composition" element={adminsOnlyRoute(<EntityCompositionTestPage />)} />
       <Route path="entity-composition/:sharedId" element={adminsOnlyRoute(<EntityCompositionDemo />)} />
-      <Route path="entity-preview/:sharedId" element={adminsOnlyRoute(<EntityPreviewWithLoader />)} loader={entityPreviewLoader()} errorElement={<EntityPreviewError />} />
+      <Route path="entity-preview/:sharedId" element={adminsOnlyRoute(<EntityPreviewWithLoader />)} loader={entityPreviewLoader(headers)} errorElement={<EntityPreviewError />} />
     </Route>
   </Route>
 );

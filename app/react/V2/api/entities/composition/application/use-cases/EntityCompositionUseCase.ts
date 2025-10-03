@@ -2,6 +2,7 @@
  * Entity Composition Use Case
  * Unified use case for entity composition with legacy pattern integration
  */
+import { IncomingHttpHeaders } from 'http';
 import { Entity } from '../../domain/entities/Entity';
 import { EntityRepository } from '../../domain/repositories/EntityRepository';
 import { EntityCompositionService } from '../../domain/services/EntityCompositionService';
@@ -18,7 +19,7 @@ export interface EntityCompositionUseCase {
   composeEntity(
     entityId: string,
     options: CompositionOptions,
-    context: { userId?: string; userPermissions?: string[] }
+    context: { userId?: string; userPermissions?: string[], headers?: IncomingHttpHeaders }
   ): Promise<CompositionResult>;
 
   composeEntities(
@@ -70,12 +71,12 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   async composeEntity(
     entityId: string,
     options: CompositionOptions,
-    context: { userId?: string; userPermissions?: string[] }
+    context: { userId?: string; userPermissions?: string[], headers?: IncomingHttpHeaders }
   ): Promise<CompositionResult> {
     const startTime = performance.now();
 
     try {
-      const entity = await this.entityRepository.findById(entityId, options);
+      const entity = await this.entityRepository.findBySharedId(entityId, options, context.headers);
       if (!entity) {
         return {
           entity: null,
@@ -273,7 +274,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   }
 
   async getLegacyFormattedData(entityId: string): Promise<any> {
-    const entity = await this.entityRepository.findById(entityId);
+    const entity = await this.entityRepository.findBySharedId(entityId);
     if (!entity) return null;
 
     return this.composeEntityWithLegacyFormatting(
@@ -292,7 +293,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   }
 
   async getFormattedMetadata(entityId: string, propertyName: string): Promise<any> {
-    const entity = await this.entityRepository.findById(entityId);
+    const entity = await this.entityRepository.findBySharedId(entityId);
     if (!entity) return null;
 
     const property = entity.metadata[propertyName];
@@ -302,21 +303,21 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   }
 
   async getFormattedRelationships(entityId: string): Promise<any> {
-    const entity = await this.entityRepository.findById(entityId);
+    const entity = await this.entityRepository.findBySharedId(entityId);
     if (!entity) return null;
 
     return entity.relationships;
   }
 
   async getFormattedFiles(entityId: string): Promise<any> {
-    const entity = await this.entityRepository.findById(entityId);
+    const entity = await this.entityRepository.findBySharedId(entityId);
     if (!entity) return null;
 
     return entity.files;
   }
 
   async getFormattedNavigation(entityId: string): Promise<any> {
-    const entity = await this.entityRepository.findById(entityId);
+    const entity = await this.entityRepository.findBySharedId(entityId);
     if (!entity) return null;
 
     return entity.navigation;
@@ -325,7 +326,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   private async composeEntityWithLegacyFormatting(
     entity: Entity,
     options: CompositionOptions,
-    _context: { userId?: string; userPermissions?: string[] }
+    _context: { userId?: string; userPermissions?: string[], headers?: IncomingHttpHeaders }
   ): Promise<ComposedEntity> {
     // Only process metadata if requested
     const formattedMetadata: Record<string, any> = {};
