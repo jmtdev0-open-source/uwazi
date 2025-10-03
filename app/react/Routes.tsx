@@ -74,6 +74,9 @@ import ConnectedUnlockAccount from './Users/UnlockAccount';
 import { NewRelMigrationDashboard } from './Settings/components/relV2MigrationDashboard';
 import EntityCompositionDemo from './V2/api/entities/composition/presentation/examples/EntityCompositionDemo';
 import EntityCompositionTestPage from './V2/api/entities/composition/presentation/examples/EntityCompositionTestPage';
+import EntityPreviewWithLoader from './V2/api/entities/composition/presentation/routes/EntityPreviewWithLoader';
+import { entityPreviewLoader } from './V2/api/entities/composition/presentation/loaders/entityPreviewLoader';
+import EntityPreviewError from './V2/api/entities/composition/presentation/routes/EntityPreviewError';
 
 const getRoutesLayout = (
   settings: ClientSettings | undefined,
@@ -276,6 +279,7 @@ const getRoutesLayout = (
       />
       <Route path="entity-composition" element={adminsOnlyRoute(<EntityCompositionTestPage />)} />
       <Route path="entity-composition/:sharedId" element={adminsOnlyRoute(<EntityCompositionDemo />)} />
+      <Route path="entity-preview/:sharedId" element={adminsOnlyRoute(<EntityPreviewWithLoader />)} loader={entityPreviewLoader()} errorElement={<EntityPreviewError />} />
     </Route>
   </Route>
 );

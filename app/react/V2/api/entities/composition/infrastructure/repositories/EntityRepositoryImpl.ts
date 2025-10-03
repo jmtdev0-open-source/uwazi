@@ -11,8 +11,10 @@ export class EntityRepositoryImpl implements EntityRepository {
 
   async findById(entityId: string, options?: CompositionOptions): Promise<Entity | null> {
     try {
-      const response = await this.apiClient.get(`/api/entities/${entityId}`, {
-        params: this.buildQueryParams(options),
+      const queryParams = this.buildQueryParams(options);
+      const url = `/api/entities?sharedId=${entityId}&omitRelationships=true&include=["permissions"]`;
+      const response = await this.apiClient.get(url, {
+        params: queryParams,
       });
 
       if (!response.data) {
