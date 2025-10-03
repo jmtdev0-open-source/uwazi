@@ -9,13 +9,10 @@ import { EntityCompositionUseCase } from '../use-cases/EntityCompositionUseCase'
 export class CompositionServiceFactory {
   private static container: DependencyContainer | null = null;
 
-  static async createCompositionService(
-    apiClient: any,
-    requestHeaders?: Headers
-  ): Promise<EntityCompositionUseCase> {
+  static async createCompositionService(apiClient: any): Promise<EntityCompositionUseCase> {
     if (!this.container) {
       this.container = DependencyContainer.getInstance();
-      
+
       // Set up the repository with the provided API client
       this.container.setEntityRepository(new EntityRepositoryImpl(apiClient));
     }
@@ -30,4 +27,3 @@ export class CompositionServiceFactory {
     }
   }
 }
-

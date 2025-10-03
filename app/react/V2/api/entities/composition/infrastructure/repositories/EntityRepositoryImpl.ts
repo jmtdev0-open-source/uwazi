@@ -3,35 +3,40 @@
  * Concrete implementation of EntityRepository
  */
 import { IncomingHttpHeaders } from 'http';
-import { getBySharedId } from '../../..';
-import { Entity } from '../../domain/entities/Entity';
+// No need for EntityDTO import - using plain objects
 import { EntityRepository } from '../../domain/repositories/EntityRepository';
 import { CompositionOptions } from '../../types';
 
 export class EntityRepositoryImpl implements EntityRepository {
   constructor(private readonly apiClient: any) {}
 
-  async findBySharedId(entityId: string, _options?: CompositionOptions,
-    headers?: IncomingHttpHeaders): Promise<Entity | null> {
+  async findBySharedId(
+    entityId: string,
+    _options?: CompositionOptions,
+    headers?: IncomingHttpHeaders
+  ): Promise<any | null> {
     try {
-      const response = await this.apiClient.getBySharedId({
-        sharedId: entityId,
-        language: 'en',
-        omitRelationships: true,
-      }, headers);
+      const response = await this.apiClient.getBySharedId(
+        {
+          sharedId: entityId,
+          language: 'en',
+          omitRelationships: true,
+        },
+        headers
+      );
 
-      if (!response) {
+      if (!response || response.length === 0) {
         return null;
       }
 
-      return this.mapToEntity(response);
+      return response[0]; // Return raw data directly
     } catch (error) {
       console.error('Error fetching entity:', error);
       return null;
     }
   }
 
-  async findByIds(entityIds: string[], options?: CompositionOptions): Promise<Entity[]> {
+  async findByIds(entityIds: string[], options?: CompositionOptions): Promise<any[]> {
     try {
       const response = await this.apiClient.post('/api/entities/batch', {
         entityIds,
@@ -42,14 +47,14 @@ export class EntityRepositoryImpl implements EntityRepository {
         return [];
       }
 
-      return response.data.map((entityData: any) => this.mapToEntity(entityData));
+      return response.data; // Return raw data directly
     } catch (error) {
       console.error('Error fetching entities:', error);
       return [];
     }
   }
 
-  async findByTemplate(templateId: string, options?: CompositionOptions): Promise<Entity[]> {
+  async findByTemplate(templateId: string, options?: CompositionOptions): Promise<any[]> {
     try {
       const response = await this.apiClient.get(`/api/entities/template/${templateId}`, {
         params: this.buildQueryParams(options),
@@ -59,7 +64,7 @@ export class EntityRepositoryImpl implements EntityRepository {
         return [];
       }
 
-      return response.data.map((entityData: any) => this.mapToEntity(entityData));
+      return response.data; // Return raw data directly
     } catch (error) {
       console.error('Error fetching entities by template:', error);
       return [];
@@ -70,7 +75,7 @@ export class EntityRepositoryImpl implements EntityRepository {
     entityId: string,
     relationshipType: string,
     options?: CompositionOptions
-  ): Promise<Entity[]> {
+  ): Promise<any[]> {
     try {
       const response = await this.apiClient.get(
         `/api/entities/${entityId}/relationships/${relationshipType}`,
@@ -82,17 +87,17 @@ export class EntityRepositoryImpl implements EntityRepository {
         return [];
       }
 
-      return response.data.map((entityData: any) => this.mapToEntity(entityData));
+      return response.data; // Return raw data directly
     } catch (error) {
       console.error('Error fetching related entities:', error);
       return [];
     }
   }
 
-  async save(entity: Entity): Promise<Entity> {
+  async save(entity: any): Promise<any> {
     try {
-      const response = await this.apiClient.put(`/api/entities/${entity.id}`, entity.toJSON());
-      return this.mapToEntity(response);
+      const response = await this.apiClient.put(`/api/entities/${entity.id}`, entity);
+      return response; // Return raw data directly
     } catch (error) {
       console.error('Error saving entity:', error);
       throw error;
@@ -152,21 +157,5 @@ export class EntityRepositoryImpl implements EntityRepository {
     };
   }
 
-  private mapToEntity(entityData: any): Entity {
-    return new Entity(
-      entityData._id || entityData.id,
-      entityData.sharedId,
-      entityData.title,
-      entityData.language || 'en',
-      entityData.template,
-      new Date(entityData.creationDate),
-      entityData.editDate ? new Date(entityData.editDate) : undefined,
-      entityData.icon,
-      entityData.permissions,
-      entityData.metadata,
-      entityData.relationships,
-      entityData.files,
-      entityData.navigation
-    );
-  }
+  // No need for mapToEntity - using raw data directly
 }

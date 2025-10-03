@@ -3,16 +3,14 @@
  * Simple implementation for entity composition orchestration
  */
 import { EntityCompositionService } from './EntityCompositionService';
-import { CompositionOptions, CompositionResult, BatchCompositionResult, ComposedEntity } from '../../types';
+import { CompositionOptions, CompositionResult, BatchCompositionResult } from '../../types';
+import { Entity } from '../entities/Entity';
 import { EntityRepository } from '../repositories/EntityRepository';
 import { LegacyMetadataFormatter } from './LegacyMetadataFormatter';
 import { IncomingHttpHeaders } from 'http';
 
 export class EntityCompositionServiceImpl implements EntityCompositionService {
-  constructor(
-    private readonly entityRepository: EntityRepository,
-    private readonly legacyMetadataFormatter: LegacyMetadataFormatter
-  ) {}
+  constructor(private readonly entityRepository: EntityRepository) {}
 
   async composeEntity(
     entityId: string,
@@ -26,26 +24,18 @@ export class EntityCompositionServiceImpl implements EntityCompositionService {
           entity: null,
           performance: { compositionTime: 0, resolutionTime: 0, cacheHits: 0, cacheMisses: 0 },
           success: false,
-          error: 'Entity not found'
+          error: 'Entity not found',
         };
       }
 
-      // Simple composition - just return the entity as-is for now
-      const composedEntity: ComposedEntity = {
-        id: entity.id,
-        sharedId: entity.sharedId,
-        title: entity.title,
-        language: entity.language,
-        template: options.includeTemplate ? entity.template : undefined as any,
-        creationDate: entity.creationDate,
-        editDate: entity.editDate,
-        icon: entity.icon,
-        permissions: options.includePermissions ? entity.permissions : undefined as any,
-        metadata: options.includeMetadata ? entity.metadata : undefined as any,
-        relationships: options.includeRelationships ? entity.relationships : undefined as any,
-        files: options.includeFiles ? entity.files : undefined as any,
-        navigation: options.includeNavigation ? entity.navigation : undefined as any,
-        rawData: entity,
+      // Create Entity using the domain class factory method
+      const composedEntity = Entity.fromRawEntity(entity, {
+        includeTemplate: options.includeTemplate,
+        includePermissions: options.includePermissions,
+        includeMetadata: options.includeMetadata,
+        includeRelationships: options.includeRelationships,
+        includeFiles: options.includeFiles,
+        includeNavigation: options.includeNavigation,
         formattedData: {
           entity: entity,
           metadata: [],
@@ -54,22 +44,29 @@ export class EntityCompositionServiceImpl implements EntityCompositionService {
           attachments: [],
           summary: {
             totalConnections: 0,
-            hubCount: 0
-          }
-        }
-      };
+            hubCount: 0,
+          },
+          navigation: {
+            availableTabs: [],
+            defaultTab: 'info',
+            hasPageView: false,
+            hasRelationships: false,
+            hasNewRelationships: false,
+          },
+        },
+      });
 
       return {
         entity: composedEntity,
         performance: { compositionTime: 0, resolutionTime: 0, cacheHits: 0, cacheMisses: 0 },
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
         entity: null,
         performance: { compositionTime: 0, resolutionTime: 0, cacheHits: 0, cacheMisses: 0 },
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -80,7 +77,7 @@ export class EntityCompositionServiceImpl implements EntityCompositionService {
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
     // Simple implementation - compose entities one by one
-    const entities: ComposedEntity[] = [];
+    const entities: Entity[] = [];
     const errors: any[] = [];
 
     for (const entityId of entityIds) {
@@ -94,12 +91,19 @@ export class EntityCompositionServiceImpl implements EntityCompositionService {
 
     return {
       entities,
-      performance: { totalTime: 0, compositionTime: 0, resolutionTime: 0, cacheHits: 0, cacheMisses: 0, sharedResourceHits: 0 },
+      performance: {
+        totalTime: 0,
+        compositionTime: 0,
+        resolutionTime: 0,
+        cacheHits: 0,
+        cacheMisses: 0,
+        sharedResourceHits: 0,
+      },
       errors,
       success: errors.length === 0,
       totalProcessed: entityIds.length,
       successCount: entities.length,
-      errorCount: errors.length
+      errorCount: errors.length,
     };
   }
 
@@ -107,76 +111,95 @@ export class EntityCompositionServiceImpl implements EntityCompositionService {
     entityIds: string[],
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
-    return this.composeEntities(entityIds, {
-      includeTemplate: true,
-      includeProperties: false,
-      includeMetadata: false,
-      includeRelationships: false,
-      includeFiles: false,
-      includeNavigation: false,
-      includePermissions: false
-    }, context);
+    return this.composeEntities(
+      entityIds,
+      {
+        includeTemplate: true,
+        includeProperties: false,
+        includeMetadata: false,
+        includeRelationships: false,
+        includeFiles: false,
+        includeNavigation: false,
+        includePermissions: false,
+      },
+      context
+    );
   }
 
   async composeEntitiesForCardView(
     entityIds: string[],
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
-    return this.composeEntities(entityIds, {
-      includeTemplate: true,
-      includeProperties: true,
-      includeMetadata: true,
-      includeRelationships: false,
-      includeFiles: false,
-      includeNavigation: false,
-      includePermissions: false
-    }, context);
+    return this.composeEntities(
+      entityIds,
+      {
+        includeTemplate: true,
+        includeProperties: true,
+        includeMetadata: true,
+        includeRelationships: false,
+        includeFiles: false,
+        includeNavigation: false,
+        includePermissions: false,
+      },
+      context
+    );
   }
 
   async composeEntitiesForDetailView(
     entityIds: string[],
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
-    return this.composeEntities(entityIds, {
-      includeTemplate: true,
-      includeProperties: true,
-      includeMetadata: true,
-      includeRelationships: true,
-      includeFiles: true,
-      includeNavigation: true,
-      includePermissions: true
-    }, context);
+    return this.composeEntities(
+      entityIds,
+      {
+        includeTemplate: true,
+        includeProperties: true,
+        includeMetadata: true,
+        includeRelationships: true,
+        includeFiles: true,
+        includeNavigation: true,
+        includePermissions: true,
+      },
+      context
+    );
   }
 
   async composeEntitiesForFormView(
     entityIds: string[],
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
-    return this.composeEntities(entityIds, {
-      includeTemplate: true,
-      includeProperties: true,
-      includeMetadata: true,
-      includeRelationships: false,
-      includeFiles: false,
-      includeNavigation: false,
-      includePermissions: false
-    }, context);
+    return this.composeEntities(
+      entityIds,
+      {
+        includeTemplate: true,
+        includeProperties: true,
+        includeMetadata: true,
+        includeRelationships: false,
+        includeFiles: false,
+        includeNavigation: false,
+        includePermissions: false,
+      },
+      context
+    );
   }
 
-  async composeEntitiesByTemplate(
-    templateId: string,
-    options: CompositionOptions,
-    context: { userId?: string; userPermissions?: string[] }
-  ): Promise<BatchCompositionResult> {
+  async composeEntitiesByTemplate(): Promise<BatchCompositionResult> {
     // Simple implementation - would need to fetch entities by template
     return {
       entities: [],
-      performance: { totalTime: 0, compositionTime: 0, resolutionTime: 0, cacheHits: 0, cacheMisses: 0, sharedResourceHits: 0 },
+      performance: {
+        totalTime: 0,
+        compositionTime: 0,
+        resolutionTime: 0,
+        cacheHits: 0,
+        cacheMisses: 0,
+        sharedResourceHits: 0,
+      },
       errors: [],
       success: true,
       totalProcessed: 0,
       successCount: 0,
-      errorCount: 0
+      errorCount: 0,
     };
   }
 }

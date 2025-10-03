@@ -11,7 +11,6 @@ import {
   CompositionOptions,
   CompositionResult,
   BatchCompositionResult,
-  ComposedEntity,
   CompositionError,
 } from '../../types';
 
@@ -19,7 +18,7 @@ export interface EntityCompositionUseCase {
   composeEntity(
     entityId: string,
     options: CompositionOptions,
-    context: { userId?: string; userPermissions?: string[], headers?: IncomingHttpHeaders }
+    context: { userId?: string; userPermissions?: string[]; headers?: IncomingHttpHeaders }
   ): Promise<CompositionResult>;
 
   composeEntities(
@@ -71,7 +70,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   async composeEntity(
     entityId: string,
     options: CompositionOptions,
-    context: { userId?: string; userPermissions?: string[], headers?: IncomingHttpHeaders }
+    context: { userId?: string; userPermissions?: string[]; headers?: IncomingHttpHeaders }
   ): Promise<CompositionResult> {
     const startTime = performance.now();
 
@@ -115,7 +114,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
     const startTime = performance.now();
-    const results: ComposedEntity[] = [];
+    const results: Entity[] = [];
     const errors: CompositionError[] = [];
 
     try {
@@ -324,62 +323,55 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   }
 
   private async composeEntityWithLegacyFormatting(
-    entity: Entity,
+    entity: any,
     options: CompositionOptions,
-    _context: { userId?: string; userPermissions?: string[], headers?: IncomingHttpHeaders }
-  ): Promise<ComposedEntity> {
+    _context: { userId?: string; userPermissions?: string[]; headers?: IncomingHttpHeaders }
+  ): Promise<Entity> {
     // Only process metadata if requested
     const formattedMetadata: Record<string, any> = {};
-    
+
     if (options.includeMetadata || options.includeProperties) {
       // Determine which fields to process based on options
       let fieldsToProcess = this.getFieldsToProcess(entity.metadata, options);
-      
+
       // Apply field exclusions
       fieldsToProcess = this.applyFieldExclusions(fieldsToProcess, options);
-      
+
       // Only process the requested fields
       Object.entries(fieldsToProcess).forEach(([key, property]) => {
         const formattedProperty = this.legacyMetadataFormatter.formatProperty(
           property,
           entity.language
         );
-        
+
         // Ensure the formatted property has the correct structure
         formattedMetadata[key] = {
           ...formattedProperty,
           // Ensure displayValue is set for UI rendering
-          displayValue: formattedProperty.formattedValue?.value || 
-                       formattedProperty.value || 
-                       formattedProperty.label || 
-                       formattedProperty.name || 
-                       'Unknown',
+          displayValue:
+            formattedProperty.formattedValue?.value ||
+            formattedProperty.value ||
+            formattedProperty.label ||
+            formattedProperty.name ||
+            'Unknown',
           // Preserve the original value for editing
           originalValue: property.value,
           // Preserve the formatted value for display
-          formattedValue: formattedProperty.formattedValue || formattedProperty.value
+          formattedValue: formattedProperty.formattedValue || formattedProperty.value,
         };
       });
     }
 
-    // Create composed entity with selective processing
-    const composedEntity: ComposedEntity = {
-      id: entity.id,
-      sharedId: entity.sharedId,
-      title: entity.title,
-      language: entity.language,
-      template: options.includeTemplate ? entity.template : undefined as any,
-      creationDate: entity.creationDate,
-      editDate: entity.editDate,
-      icon: entity.icon,
-      permissions: options.includePermissions ? entity.permissions : undefined as any,
-      metadata: formattedMetadata,
-      relationships: this.processRelationships(entity.relationships, options),
-      files: this.processFiles(entity.files, options),
-      navigation: this.processNavigation(entity.navigation, options),
-      rawData: entity.toJSON(),
+    // Create composed entity using the domain class factory method
+    const composedEntity = Entity.fromRawEntity(entity, {
+      includeTemplate: options.includeTemplate,
+      includePermissions: options.includePermissions,
+      includeMetadata: options.includeMetadata,
+      includeRelationships: options.includeRelationships,
+      includeFiles: options.includeFiles,
+      includeNavigation: options.includeNavigation,
       formattedData: this.buildFormattedData(entity, formattedMetadata, options),
-    };
+    });
 
     return composedEntity;
   }
@@ -387,7 +379,10 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   /**
    * Determine which fields to process based on composition options
    */
-  private getFieldsToProcess(metadata: Record<string, any>, options: CompositionOptions): Record<string, any> {
+  private getFieldsToProcess(
+    metadata: Record<string, any>,
+    options: CompositionOptions
+  ): Record<string, any> {
     const fieldsToProcess: Record<string, any> = {};
 
     // If no metadata processing is requested, return empty
@@ -470,9 +465,20 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
    */
   private isMetadataSpecificType(type: string): boolean {
     const metadataTypes = [
-      'date', 'daterange', 'multidate', 'multidaterange',
-      'select', 'multiselect', 'geolocation', 'image', 'media',
-      'markdown', 'relationship', 'inherit', 'newRelationshipWithInherit', 'nested'
+      'date',
+      'daterange',
+      'multidate',
+      'multidaterange',
+      'select',
+      'multiselect',
+      'geolocation',
+      'image',
+      'media',
+      'markdown',
+      'relationship',
+      'inherit',
+      'newRelationshipWithInherit',
+      'nested',
     ];
     return metadataTypes.includes(type);
   }
@@ -485,8 +491,8 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       // Convert pattern to regex
       const regexPattern = pattern
         .replace(/\*/g, '.*') // * matches any characters
-        .replace(/\?/g, '.');  // ? matches single character
-      
+        .replace(/\?/g, '.'); // ? matches single character
+
       const regex = new RegExp(`^${regexPattern}$`, 'i');
       return regex.test(fieldName);
     });
@@ -495,7 +501,10 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   /**
    * Apply field exclusions to the processed fields
    */
-  private applyFieldExclusions(fieldsToProcess: Record<string, any>, options: CompositionOptions): Record<string, any> {
+  private applyFieldExclusions(
+    fieldsToProcess: Record<string, any>,
+    options: CompositionOptions
+  ): Record<string, any> {
     if (!options.excludeFields || options.excludeFields.length === 0) {
       return fieldsToProcess;
     }
@@ -544,18 +553,20 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       };
     }
 
-    return relationships || {
-      hubs: [],
-      connections: [],
-      summary: { totalConnections: 0, hubCount: 0 },
-      navigation: {
-        availableTabs: {},
-        defaultTab: 'info',
-        hasPageView: false,
-        hasRelationships: false,
-        hasNewRelationships: false,
-      },
-    };
+    return (
+      relationships || {
+        hubs: [],
+        connections: [],
+        summary: { totalConnections: 0, hubCount: 0 },
+        navigation: {
+          availableTabs: {},
+          defaultTab: 'info',
+          hasPageView: false,
+          hasRelationships: false,
+          hasNewRelationships: false,
+        },
+      }
+    );
   }
 
   /**
@@ -586,24 +597,30 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       };
     }
 
-    return navigation || {
-      availableTabs: {},
-      defaultTab: 'info',
-      hasPageView: false,
-      hasRelationships: false,
-      hasNewRelationships: false,
-      panelOpen: false,
-      copyFrom: false,
-      copyFromProps: [],
-    };
+    return (
+      navigation || {
+        availableTabs: {},
+        defaultTab: 'info',
+        hasPageView: false,
+        hasRelationships: false,
+        hasNewRelationships: false,
+        panelOpen: false,
+        copyFrom: false,
+        copyFromProps: [],
+      }
+    );
   }
 
   /**
    * Build formatted data based on options
    */
-  private buildFormattedData(entity: Entity, formattedMetadata: Record<string, any>, options: CompositionOptions): any {
+  private buildFormattedData(
+    entity: Entity,
+    formattedMetadata: Record<string, any>,
+    options: CompositionOptions
+  ): any {
     const formattedData: any = {
-      entity: entity.toJSON(),
+      entity: entity,
       metadata: Object.values(formattedMetadata),
       relationships: [],
       files: [],

@@ -50,8 +50,8 @@ export class DependencyContainer {
   getEntityCompositionService(): EntityCompositionService {
     if (!this.entityCompositionService) {
       this.entityCompositionService = new EntityCompositionServiceImpl(
-        this.getEntityRepository(),
-        this.getLegacyMetadataFormatter()
+        this.getEntityRepository()
+        // this.getLegacyMetadataFormatter()
       );
     }
     return this.entityCompositionService!;

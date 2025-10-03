@@ -34,42 +34,42 @@ export class LegacyMetadataFormatterImpl implements LegacyMetadataFormatter {
     // Handle properties with value field (most common case)
     if (property.value !== undefined) {
       const value = property.value;
-      
+
       // Handle date timestamps
       if (typeof value === 'number' && value > 1000000000) {
         return this.formatDate(value, _language);
       }
-      
+
       // Handle date range objects
       if (typeof value === 'object' && value.from && value.to) {
         return this.formatDateRange(value.from, value.to, _language);
       }
-      
+
       // Handle multidate arrays
       if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'number') {
         return this.formatMultiDate(value, _language);
       }
-      
+
       // Handle geolocation objects
       if (typeof value === 'object' && value.lat && value.lon) {
         return this.formatGeolocation({ value }, _language);
       }
-      
+
       // Handle link objects
       if (typeof value === 'object' && value.label && value.url) {
         return `${value.label} (${value.url})`;
       }
-      
+
       // Handle image paths
       if (typeof value === 'string' && value.includes('/api/files/')) {
         return `Image: ${value.split('/').pop()}`;
       }
-      
+
       // Handle simple string values
       if (typeof value === 'string') {
         return value;
       }
-      
+
       // Handle other object values
       return String(value);
     }
@@ -113,15 +113,17 @@ export class LegacyMetadataFormatterImpl implements LegacyMetadataFormatter {
     // Handle array properties
     if (Array.isArray(property)) {
       if (property.length === 0) return 'No values';
-      return property.map((item, index) => {
-        if (typeof item === 'object' && item.value !== undefined) {
-          if (typeof item.value === 'number' && item.value > 1000000000) {
-            return this.formatDate(item.value, _language);
+      return property
+        .map(item => {
+          if (typeof item === 'object' && item.value !== undefined) {
+            if (typeof item.value === 'number' && item.value > 1000000000) {
+              return this.formatDate(item.value, _language);
+            }
+            return item.value;
           }
-          return item.value;
-        }
-        return item.displayValue || item.name || item.title || item.label || JSON.stringify(item);
-      }).join(', ');
+          return item.displayValue || item.name || item.title || item.label || JSON.stringify(item);
+        })
+        .join(', ');
     }
 
     // Handle object properties without value field
@@ -130,13 +132,13 @@ export class LegacyMetadataFormatterImpl implements LegacyMetadataFormatter {
       if (value) {
         return value;
       }
-      
+
       // Last resort: show a summary
       const keys = Object.keys(property);
       if (keys.length > 0) {
         return `Object with ${keys.length} properties: ${keys.slice(0, 3).join(', ')}${keys.length > 3 ? '...' : ''}`;
       }
-      
+
       return 'Empty object';
     }
 
@@ -225,11 +227,13 @@ export class LegacyMetadataFormatterImpl implements LegacyMetadataFormatter {
     if (!Array.isArray(property.value)) {
       return {
         ...property,
-        formattedValue: [{
-          value: property.value || property.label || property.name || 'Unknown',
-          url: property.url,
-          icon: property.icon,
-        }],
+        formattedValue: [
+          {
+            value: property.value || property.label || property.name || 'Unknown',
+            url: property.url,
+            icon: property.icon,
+          },
+        ],
       };
     }
 
@@ -253,7 +257,11 @@ export class LegacyMetadataFormatterImpl implements LegacyMetadataFormatter {
     }
 
     // Handle case where property.value is already formatted objects
-    if (property.value.length > 0 && typeof property.value[0] === 'object' && property.value[0].value) {
+    if (
+      property.value.length > 0 &&
+      typeof property.value[0] === 'object' &&
+      property.value[0].value
+    ) {
       return {
         ...property,
         formattedValue: property.value,

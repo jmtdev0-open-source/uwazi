@@ -32,8 +32,6 @@ export {
   useLegacyEntityComposition,
 } from './presentation/hooks/useEntityComposition';
 
-export { default as UnifiedEntityCompositionExample } from './presentation/examples/UnifiedEntityCompositionExample';
-
 // Type exports
 export type {
   CompositionContext,
@@ -55,7 +53,6 @@ export type {
   ComposedAttachment,
   ComposedNavigationData,
   ComposedTab,
-  ComposedEntity,
   LegacyFormattedData,
   ValidationResult,
 } from './types';

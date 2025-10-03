@@ -3,12 +3,8 @@
  * Provides a fluent API for entity composition
  */
 import { EntityCompositionUseCase } from '../application/use-cases/EntityCompositionUseCase';
-import {
-  CompositionOptions,
-  CompositionResult,
-  BatchCompositionResult,
-  ComposedEntity,
-} from '../types';
+import { Entity } from '../domain/entities/Entity';
+import { CompositionOptions, CompositionResult, BatchCompositionResult } from '../types';
 
 export class FluentCompositionBuilder {
   private options: CompositionOptions = {};
@@ -236,7 +232,7 @@ export class FluentCompositionBuilder {
   /**
    * Execute and return only the entity/entities
    */
-  async getEntity(): Promise<ComposedEntity | null> {
+  async getEntity(): Promise<Entity | null> {
     const result = await this.compose();
     if ('entity' in result) {
       return result.entity;
@@ -247,7 +243,7 @@ export class FluentCompositionBuilder {
   /**
    * Execute and return only the entities
    */
-  async getEntities(): Promise<ComposedEntity[]> {
+  async getEntities(): Promise<Entity[]> {
     const result = await this.compose();
     if ('entities' in result) {
       return result.entities;

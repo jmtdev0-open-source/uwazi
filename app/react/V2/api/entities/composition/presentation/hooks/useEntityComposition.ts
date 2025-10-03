@@ -5,7 +5,8 @@
 import React, { useState, useCallback, useContext, createContext } from 'react';
 import { EntityCompositionUseCase } from '../../application/use-cases/EntityCompositionUseCase';
 import { EntityComposer } from '../../core/EntityComposer';
-import { CompositionOptions, ComposedEntity, PerformanceMetrics } from '../../types';
+import { CompositionOptions, PerformanceMetrics } from '../../types';
+import { Entity } from '../../domain/entities/Entity';
 
 // Context for dependency injection
 const EntityCompositionContext = createContext<{
@@ -47,7 +48,7 @@ export const useEntityComposition = (useCase?: EntityCompositionUseCase) => {
       entityId: string,
       options: CompositionOptions,
       _userContext: { userId?: string; userPermissions?: string[] } = {}
-    ): Promise<ComposedEntity | null> => {
+    ): Promise<Entity | null> => {
       setLoading(true);
       setError(null);
 
@@ -74,7 +75,7 @@ export const useEntityComposition = (useCase?: EntityCompositionUseCase) => {
       entityIds: string[],
       options: CompositionOptions,
       _userContext: { userId?: string; userPermissions?: string[] } = {}
-    ): Promise<ComposedEntity[]> => {
+    ): Promise<Entity[]> => {
       setLoading(true);
       setError(null);
 
@@ -151,7 +152,7 @@ export const useEntityCompositionWithPerformance = (useCase?: EntityCompositionU
       entityId: string,
       options: CompositionOptions,
       _userContext: { userId?: string; userPermissions?: string[] } = {}
-    ): Promise<ComposedEntity | null> => {
+    ): Promise<Entity | null> => {
       setLoading(true);
       setError(null);
 
@@ -209,7 +210,7 @@ export const useEntityCompositionWithCaching = (useCase?: EntityCompositionUseCa
       entityId: string,
       options: CompositionOptions,
       _userContext: { userId?: string; userPermissions?: string[] } = {}
-    ): Promise<ComposedEntity | null> => {
+    ): Promise<Entity | null> => {
       setLoading(true);
       setError(null);
 

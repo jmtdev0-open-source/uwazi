@@ -3,6 +3,8 @@
  * Consolidated types for the entity composition system
  */
 
+import { Entity } from './domain/entities/Entity';
+
 export interface CompositionContext {
   readonly userId?: string;
   readonly userPermissions?: string[];
@@ -35,14 +37,14 @@ export interface CompositionOptions {
 }
 
 export interface CompositionResult {
-  readonly entity: ComposedEntity | null;
+  readonly entity: Entity | null;
   readonly performance: PerformanceMetrics;
   readonly success: boolean;
   readonly error?: string;
 }
 
 export interface BatchCompositionResult {
-  readonly entities: ComposedEntity[];
+  readonly entities: Entity[];
   readonly performance: BatchPerformanceMetrics;
   readonly errors: CompositionError[];
   readonly success: boolean;
@@ -199,23 +201,8 @@ export interface ComposedTab {
   readonly component: string;
 }
 
-export interface ComposedEntity {
-  readonly id: string;
-  readonly sharedId: string;
-  readonly title: string;
-  readonly language: string;
-  readonly template: ComposedTemplate;
-  readonly creationDate: Date;
-  readonly editDate?: Date;
-  readonly icon?: any;
-  readonly permissions: EntityPermissions;
-  readonly metadata: Record<string, any>;
-  readonly relationships: ComposedRelationshipData;
-  readonly files: ComposedFileData;
-  readonly navigation: ComposedNavigationData;
-  readonly rawData: any;
-  readonly formattedData: LegacyFormattedData;
-}
+// ComposedEntity is now a domain class, not an interface
+// The domain class provides business logic and validation
 
 export interface LegacyFormattedData {
   readonly entity: any;
@@ -236,5 +223,5 @@ export interface LegacyFormattedData {
 export interface ValidationResult {
   readonly isValid: boolean;
   readonly errors: string[];
-  readonly entity: ComposedEntity | null;
+  readonly entity: Entity | null;
 }
