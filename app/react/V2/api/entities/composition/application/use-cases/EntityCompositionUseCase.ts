@@ -324,57 +324,256 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
 
   private async composeEntityWithLegacyFormatting(
     entity: Entity,
-    _options: CompositionOptions,
+    options: CompositionOptions,
     _context: { userId?: string; userPermissions?: string[] }
   ): Promise<ComposedEntity> {
-    // Apply legacy formatting to metadata
+    // Only process metadata if requested
     const formattedMetadata: Record<string, any> = {};
-    Object.entries(entity.metadata).forEach(([key, property]) => {
-      formattedMetadata[key] = this.legacyMetadataFormatter.formatProperty(
-        property,
-        entity.language
-      );
-    });
+    
+    if (options.includeMetadata || options.includeProperties) {
+      // Determine which fields to process based on options
+      let fieldsToProcess = this.getFieldsToProcess(entity.metadata, options);
+      
+      // Apply field exclusions
+      fieldsToProcess = this.applyFieldExclusions(fieldsToProcess, options);
+      
+      // Only process the requested fields
+      Object.entries(fieldsToProcess).forEach(([key, property]) => {
+        const formattedProperty = this.legacyMetadataFormatter.formatProperty(
+          property,
+          entity.language
+        );
+        
+        // Ensure the formatted property has the correct structure
+        formattedMetadata[key] = {
+          ...formattedProperty,
+          // Ensure displayValue is set for UI rendering
+          displayValue: formattedProperty.formattedValue?.value || 
+                       formattedProperty.value || 
+                       formattedProperty.label || 
+                       formattedProperty.name || 
+                       'Unknown',
+          // Preserve the original value for editing
+          originalValue: property.value,
+          // Preserve the formatted value for display
+          formattedValue: formattedProperty.formattedValue || formattedProperty.value
+        };
+      });
+    }
 
-    // Create composed entity with legacy formatting
+    // Create composed entity with selective processing
     const composedEntity: ComposedEntity = {
       id: entity.id,
       sharedId: entity.sharedId,
       title: entity.title,
       language: entity.language,
-      template: entity.template,
+      template: options.includeTemplate ? entity.template : undefined as any,
       creationDate: entity.creationDate,
       editDate: entity.editDate,
       icon: entity.icon,
-      permissions: entity.permissions,
+      permissions: options.includePermissions ? entity.permissions : undefined as any,
       metadata: formattedMetadata,
-      relationships: Array.isArray(entity.relationships)
-        ? {
-            hubs: [],
-            connections: entity.relationships,
-            summary: { totalConnections: entity.relationships.length, hubCount: 0 },
-            navigation: {
-              availableTabs: {},
-              defaultTab: 'info',
-              hasPageView: false,
-              hasRelationships: entity.relationships.length > 0,
-              hasNewRelationships: false,
-            },
-          }
-        : entity.relationships || {
-            hubs: [],
-            connections: [],
-            summary: { totalConnections: 0, hubCount: 0 },
-            navigation: {
-              availableTabs: {},
-              defaultTab: 'info',
-              hasPageView: false,
-              hasRelationships: false,
-              hasNewRelationships: false,
-            },
-          },
-      files: entity.files || { documents: [], attachments: [], processed: false },
-      navigation: entity.navigation || {
+      relationships: this.processRelationships(entity.relationships, options),
+      files: this.processFiles(entity.files, options),
+      navigation: this.processNavigation(entity.navigation, options),
+      rawData: entity.toJSON(),
+      formattedData: this.buildFormattedData(entity, formattedMetadata, options),
+    };
+
+    return composedEntity;
+  }
+
+  /**
+   * Determine which fields to process based on composition options
+   */
+  private getFieldsToProcess(metadata: Record<string, any>, options: CompositionOptions): Record<string, any> {
+    const fieldsToProcess: Record<string, any> = {};
+
+    // If no metadata processing is requested, return empty
+    if (!options.includeMetadata && !options.includeProperties) {
+      return fieldsToProcess;
+    }
+
+    // Priority 1: If includeFields is specified, use it (overrides everything)
+    if (options.includeFields && options.includeFields.length > 0) {
+      options.includeFields.forEach(fieldName => {
+        if (metadata[fieldName]) {
+          fieldsToProcess[fieldName] = metadata[fieldName];
+        }
+      });
+      return fieldsToProcess;
+    }
+
+    // Priority 2: If fieldNames is specified, use it
+    if (options.fieldNames && options.fieldNames.length > 0) {
+      options.fieldNames.forEach(fieldName => {
+        if (metadata[fieldName]) {
+          fieldsToProcess[fieldName] = metadata[fieldName];
+        }
+      });
+      return fieldsToProcess;
+    }
+
+    // Priority 3: If fieldPatterns is specified, use pattern matching
+    if (options.fieldPatterns && options.fieldPatterns.length > 0) {
+      Object.entries(metadata).forEach(([key, property]) => {
+        if (this.matchesFieldPatterns(key, options.fieldPatterns!)) {
+          fieldsToProcess[key] = property;
+        }
+      });
+      return fieldsToProcess;
+    }
+
+    // Priority 4: If fieldTypes is specified, filter by type
+    if (options.fieldTypes && options.fieldTypes.length > 0) {
+      Object.entries(metadata).forEach(([key, property]) => {
+        if (property.type && options.fieldTypes!.includes(property.type)) {
+          fieldsToProcess[key] = property;
+        }
+      });
+      return fieldsToProcess;
+    }
+
+    // Priority 5: If onlyForCards is true, only process fields marked for card display
+    if (options.onlyForCards) {
+      Object.entries(metadata).forEach(([key, property]) => {
+        if (property.showInCard === true) {
+          fieldsToProcess[key] = property;
+        }
+      });
+      return fieldsToProcess;
+    }
+
+    // Priority 6: If specific field types are requested, filter by type
+    if (options.includeProperties && !options.includeMetadata) {
+      // Only process properties that are not metadata-specific
+      Object.entries(metadata).forEach(([key, property]) => {
+        if (property.type && !this.isMetadataSpecificType(property.type)) {
+          fieldsToProcess[key] = property;
+        }
+      });
+      return fieldsToProcess;
+    }
+
+    // Priority 7: If metadata is requested, include all fields
+    if (options.includeMetadata) {
+      return metadata;
+    }
+
+    // Default: return all fields if no specific filtering
+    return metadata;
+  }
+
+  /**
+   * Check if a property type is metadata-specific
+   */
+  private isMetadataSpecificType(type: string): boolean {
+    const metadataTypes = [
+      'date', 'daterange', 'multidate', 'multidaterange',
+      'select', 'multiselect', 'geolocation', 'image', 'media',
+      'markdown', 'relationship', 'inherit', 'newRelationshipWithInherit', 'nested'
+    ];
+    return metadataTypes.includes(type);
+  }
+
+  /**
+   * Check if a field name matches any of the patterns
+   */
+  private matchesFieldPatterns(fieldName: string, patterns: string[]): boolean {
+    return patterns.some(pattern => {
+      // Convert pattern to regex
+      const regexPattern = pattern
+        .replace(/\*/g, '.*') // * matches any characters
+        .replace(/\?/g, '.');  // ? matches single character
+      
+      const regex = new RegExp(`^${regexPattern}$`, 'i');
+      return regex.test(fieldName);
+    });
+  }
+
+  /**
+   * Apply field exclusions to the processed fields
+   */
+  private applyFieldExclusions(fieldsToProcess: Record<string, any>, options: CompositionOptions): Record<string, any> {
+    if (!options.excludeFields || options.excludeFields.length === 0) {
+      return fieldsToProcess;
+    }
+
+    const filteredFields: Record<string, any> = {};
+    Object.entries(fieldsToProcess).forEach(([key, property]) => {
+      if (!options.excludeFields!.includes(key)) {
+        filteredFields[key] = property;
+      }
+    });
+
+    return filteredFields;
+  }
+
+  /**
+   * Process relationships based on options
+   */
+  private processRelationships(relationships: any, options: CompositionOptions): any {
+    if (!options.includeRelationships) {
+      return {
+        hubs: [],
+        connections: [],
+        summary: { totalConnections: 0, hubCount: 0 },
+        navigation: {
+          availableTabs: {},
+          defaultTab: 'info',
+          hasPageView: false,
+          hasRelationships: false,
+          hasNewRelationships: false,
+        },
+      };
+    }
+
+    if (Array.isArray(relationships)) {
+      return {
+        hubs: [],
+        connections: relationships,
+        summary: { totalConnections: relationships.length, hubCount: 0 },
+        navigation: {
+          availableTabs: {},
+          defaultTab: 'info',
+          hasPageView: false,
+          hasRelationships: relationships.length > 0,
+          hasNewRelationships: false,
+        },
+      };
+    }
+
+    return relationships || {
+      hubs: [],
+      connections: [],
+      summary: { totalConnections: 0, hubCount: 0 },
+      navigation: {
+        availableTabs: {},
+        defaultTab: 'info',
+        hasPageView: false,
+        hasRelationships: false,
+        hasNewRelationships: false,
+      },
+    };
+  }
+
+  /**
+   * Process files based on options
+   */
+  private processFiles(files: any, options: CompositionOptions): any {
+    if (!options.includeFiles) {
+      return { documents: [], attachments: [], processed: false };
+    }
+
+    return files || { documents: [], attachments: [], processed: false };
+  }
+
+  /**
+   * Process navigation based on options
+   */
+  private processNavigation(navigation: any, options: CompositionOptions): any {
+    if (!options.includeNavigation) {
+      return {
         availableTabs: {},
         defaultTab: 'info',
         hasPageView: false,
@@ -383,23 +582,56 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         panelOpen: false,
         copyFrom: false,
         copyFromProps: [],
-      },
-      rawData: entity.toJSON(),
-      formattedData: {
-        entity: entity.toJSON(),
-        metadata: Object.values(formattedMetadata),
-        relationships: Array.isArray(entity.relationships)
-          ? entity.relationships
-          : (entity.relationships as any)?.hubs || [],
-        files: entity.files?.documents || [],
-        attachments: entity.files?.attachments || [],
-        summary: Array.isArray(entity.relationships)
-          ? { totalConnections: entity.relationships.length, hubCount: 0 }
-          : (entity.relationships as any)?.summary || { totalConnections: 0, hubCount: 0 },
-        navigation: entity.navigation,
-      },
+      };
+    }
+
+    return navigation || {
+      availableTabs: {},
+      defaultTab: 'info',
+      hasPageView: false,
+      hasRelationships: false,
+      hasNewRelationships: false,
+      panelOpen: false,
+      copyFrom: false,
+      copyFromProps: [],
+    };
+  }
+
+  /**
+   * Build formatted data based on options
+   */
+  private buildFormattedData(entity: Entity, formattedMetadata: Record<string, any>, options: CompositionOptions): any {
+    const formattedData: any = {
+      entity: entity.toJSON(),
+      metadata: Object.values(formattedMetadata),
+      relationships: [],
+      files: [],
+      attachments: [],
+      summary: { totalConnections: 0, hubCount: 0 },
+      navigation: {},
     };
 
-    return composedEntity;
+    // Only include relationships if requested
+    if (options.includeRelationships) {
+      formattedData.relationships = Array.isArray(entity.relationships)
+        ? entity.relationships
+        : (entity.relationships as any)?.hubs || [];
+      formattedData.summary = Array.isArray(entity.relationships)
+        ? { totalConnections: entity.relationships.length, hubCount: 0 }
+        : (entity.relationships as any)?.summary || { totalConnections: 0, hubCount: 0 };
+    }
+
+    // Only include files if requested
+    if (options.includeFiles) {
+      formattedData.files = entity.files?.documents || [];
+      formattedData.attachments = entity.files?.attachments || [];
+    }
+
+    // Only include navigation if requested
+    if (options.includeNavigation) {
+      formattedData.navigation = entity.navigation;
+    }
+
+    return formattedData;
   }
 }

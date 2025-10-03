@@ -184,6 +184,46 @@ export class FluentCompositionBuilder {
   }
 
   /**
+   * Select specific fields by name
+   */
+  withFields(fieldNames: string[]): FluentCompositionBuilder {
+    this.options.fieldNames = fieldNames;
+    return this;
+  }
+
+  /**
+   * Select fields by pattern matching
+   */
+  withFieldPatterns(patterns: string[]): FluentCompositionBuilder {
+    this.options.fieldPatterns = patterns;
+    return this;
+  }
+
+  /**
+   * Select fields by type
+   */
+  withFieldTypes(types: string[]): FluentCompositionBuilder {
+    this.options.fieldTypes = types;
+    return this;
+  }
+
+  /**
+   * Exclude specific fields
+   */
+  excludeFields(fieldNames: string[]): FluentCompositionBuilder {
+    this.options.excludeFields = fieldNames;
+    return this;
+  }
+
+  /**
+   * Include only specific fields (overrides other selections)
+   */
+  includeOnlyFields(fieldNames: string[]): FluentCompositionBuilder {
+    this.options.includeFields = fieldNames;
+    return this;
+  }
+
+  /**
    * Execute the composition
    */
   async compose(): Promise<CompositionResult | BatchCompositionResult> {

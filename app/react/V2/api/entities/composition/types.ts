@@ -26,6 +26,12 @@ export interface CompositionOptions {
   userId?: string;
   userPermissions?: string[];
   language?: string;
+  // Field selection options
+  fieldNames?: string[]; // Specific field names to process
+  fieldPatterns?: string[]; // Pattern matching for field names (e.g., ['title*', '*date*'])
+  fieldTypes?: string[]; // Specific field types to process (e.g., ['select', 'date'])
+  excludeFields?: string[]; // Field names to exclude
+  includeFields?: string[]; // Field names to include (overrides other options)
 }
 
 export interface CompositionResult {
@@ -203,7 +209,7 @@ export interface ComposedEntity {
   readonly editDate?: Date;
   readonly icon?: any;
   readonly permissions: EntityPermissions;
-  readonly metadata: Record<string, ComposedProperty>;
+  readonly metadata: Record<string, any>;
   readonly relationships: ComposedRelationshipData;
   readonly files: ComposedFileData;
   readonly navigation: ComposedNavigationData;

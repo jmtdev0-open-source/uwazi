@@ -1,6 +1,6 @@
 /**
- * Entity Composition Demo
- * Demo component that shows real entities with a UI matching the case entity design
+ * Clean Entity Composition Demo
+ * Uses only real API client - no mock data
  */
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -50,7 +50,6 @@ const EntityCompositionContent: React.FC<{ sharedId?: string }> = ({ sharedId })
         // Fallback
         return String(property.label || property.name || 'Unknown');
     };
-
 
     // Helper function to get property label
     const getPropertyLabel = (key: string) => {
@@ -178,7 +177,7 @@ const EntityCompositionContent: React.FC<{ sharedId?: string }> = ({ sharedId })
                             padding: '8px 16px',
                             borderRadius: '4px',
                             fontSize: '14px'
-                        }}>Relationships 14</button>
+                        }}>Relationships</button>
                         <button style={{
                             backgroundColor: 'transparent',
                             color: '#666',
@@ -186,59 +185,13 @@ const EntityCompositionContent: React.FC<{ sharedId?: string }> = ({ sharedId })
                             padding: '8px 16px',
                             borderRadius: '4px',
                             fontSize: '14px'
-                        }}>Files 4</button>
+                        }}>Files</button>
                     </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button style={{
-                        backgroundColor: '#0066cc',
-                        color: 'white',
-                        border: 'none',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '12px'
-                    }}>EN</button>
-                    <button style={{
-                        backgroundColor: 'transparent',
-                        color: '#666',
-                        border: 'none',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '12px'
-                    }}>ES</button>
-                    <button style={{
-                        backgroundColor: 'transparent',
-                        color: '#666',
-                        border: 'none',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '12px'
-                    }}>FR</button>
-                    <button style={{
-                        backgroundColor: 'transparent',
-                        color: '#666',
-                        border: 'none',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '12px'
-                    }}>MY</button>
                 </div>
             </div>
 
             {/* Main Content */}
             <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-                {/* Case Label */}
-                <div style={{ marginBottom: '16px' }}>
-                    <span style={{
-                        backgroundColor: '#0066cc',
-                        color: 'white',
-                        padding: '4px 12px',
-                        borderRadius: '16px',
-                        fontSize: '12px',
-                        fontWeight: '500'
-                    }}>Case</span>
-                </div>
-
                 {/* Title */}
                 <h1 style={{
                     fontSize: '24px',
@@ -280,18 +233,18 @@ const EntityCompositionContent: React.FC<{ sharedId?: string }> = ({ sharedId })
                                         {entity.title}
                                     </div>
                                     <div style={{ color: '#666', marginBottom: '12px' }}>
-                                        {entity.metadata.country ? renderPropertyValue(entity.metadata.country) : 'Unknown'} • {entity.metadata.date ? renderPropertyValue(entity.metadata.date) : 'Unknown Date'}
+                                        {entity.metadata.country || 'Unknown'} • {entity.metadata.date || 'Unknown Date'}
                                     </div>
                                     <div style={{ fontSize: '13px', lineHeight: '1.4' }}>
                                         {entity.metadata.description ?
-                                            String(renderPropertyValue(entity.metadata.description)).substring(0, 200) + '...' :
+                                            entity.metadata.description.substring(0, 200) + '...' :
                                             'No description available'
                                         }
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Files */}
+                            {/* Files Section */}
                             {entity.files.documents.length > 0 && (
                                 <div style={{
                                     backgroundColor: 'white',
@@ -343,7 +296,7 @@ const EntityCompositionContent: React.FC<{ sharedId?: string }> = ({ sharedId })
 
                         {/* Right Column */}
                         <div>
-                            {/* Dynamic Properties */}
+                            {/* Properties */}
                             <div style={{
                                 backgroundColor: 'white',
                                 borderRadius: '8px',
@@ -377,112 +330,6 @@ const EntityCompositionContent: React.FC<{ sharedId?: string }> = ({ sharedId })
                                         );
                                     })}
                                 </div>
-                            </div>
-
-                            {/* Other Files */}
-                            {entity.files.attachments.length > 0 && (
-                                <div style={{
-                                    backgroundColor: 'white',
-                                    borderRadius: '8px',
-                                    padding: '24px',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                }}>
-                                    <h2 style={{
-                                        fontSize: '18px',
-                                        fontWeight: '600',
-                                        color: '#333',
-                                        marginBottom: '16px'
-                                    }}>Other Files</h2>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        {entity.files.attachments.map((file, index) => (
-                                            <div key={index} style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                padding: '8px',
-                                                backgroundColor: '#f8f9fa',
-                                                borderRadius: '4px'
-                                            }}>
-                                                <span style={{
-                                                    backgroundColor: '#0066cc',
-                                                    color: 'white',
-                                                    padding: '2px 6px',
-                                                    borderRadius: '4px',
-                                                    fontSize: '10px',
-                                                    fontWeight: '500'
-                                                }}>{file.type}</span>
-                                                <span style={{
-                                                    fontSize: '12px',
-                                                    color: '#0066cc',
-                                                    textDecoration: 'underline',
-                                                    cursor: 'pointer',
-                                                    flex: 1,
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap'
-                                                }}>{file.filename}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Debug Section - Remove in production */}
-                        <div style={{
-                            backgroundColor: '#f8f9fa',
-                            border: '1px solid #e9ecef',
-                            borderRadius: '8px',
-                            padding: '16px',
-                            marginTop: '24px'
-                        }}>
-                            <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#666' }}>
-                                Debug Info (Remove in production)
-                            </h3>
-                            <div style={{ fontSize: '12px', color: '#666' }}>
-                                <div><strong>Entity ID:</strong> {entity.id}</div>
-                                <div><strong>Shared ID:</strong> {entity.sharedId}</div>
-                                <div><strong>Title:</strong> {entity.title}</div>
-                                <div><strong>Template:</strong> {entity.template?.name || 'None'}</div>
-                                <div><strong>Properties Count:</strong> {entity.metadata ? Object.keys(entity.metadata).length : 0}</div>
-                                <div><strong>Files Count:</strong> {entity.files.documents.length + entity.files.attachments.length}</div>
-
-                                <details style={{ marginTop: '8px' }}>
-                                    <summary style={{ cursor: 'pointer', fontWeight: '500' }}>Formatted Properties</summary>
-                                    <div style={{
-                                        fontSize: '10px',
-                                        backgroundColor: '#fff',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        marginTop: '8px',
-                                        overflow: 'auto',
-                                        maxHeight: '200px'
-                                    }}>
-                                        {entity.metadata && Object.entries(entity.metadata).map(([key, value]) => {
-                                            const formattedValue = renderPropertyValue(value);
-                                            return (
-                                                <div key={key} style={{ marginBottom: '4px', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
-                                                    <strong>{getPropertyLabel(key)}:</strong> {formattedValue || 'No value'}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </details>
-
-                                <details style={{ marginTop: '8px' }}>
-                                    <summary style={{ cursor: 'pointer', fontWeight: '500' }}>Raw Entity Data</summary>
-                                    <pre style={{
-                                        fontSize: '10px',
-                                        backgroundColor: '#fff',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        marginTop: '8px',
-                                        overflow: 'auto',
-                                        maxHeight: '200px'
-                                    }}>
-                                        {JSON.stringify(entity, null, 2)}
-                                    </pre>
-                                </details>
                             </div>
                         </div>
                     </div>
@@ -518,16 +365,7 @@ const EntityCompositionContent: React.FC<{ sharedId?: string }> = ({ sharedId })
                         }}>Share</button>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <span style={{ fontSize: '12px', color: '#666' }}>Read mode (prototype only)</span>
-                        <button style={{
-                            backgroundColor: '#dc3545',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '4px',
-                            fontSize: '14px',
-                            cursor: 'pointer'
-                        }}>Delete</button>
+                        <span style={{ fontSize: '12px', color: '#666' }}>Entity Composition Demo</span>
                     </div>
                 </div>
             </div>
@@ -535,7 +373,7 @@ const EntityCompositionContent: React.FC<{ sharedId?: string }> = ({ sharedId })
     );
 };
 
-const EntityCompositionDemo: React.FC = () => {
+const CleanEntityCompositionDemo: React.FC = () => {
     const { sharedId } = useParams<{ sharedId?: string }>();
     const [isReady, setIsReady] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -674,4 +512,4 @@ const EntityCompositionDemo: React.FC = () => {
     );
 };
 
-export default EntityCompositionDemo;
+export default CleanEntityCompositionDemo;

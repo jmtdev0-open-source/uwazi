@@ -11,7 +11,7 @@ export class EntityRepositoryImpl implements EntityRepository {
 
   async findById(entityId: string, options?: CompositionOptions): Promise<Entity | null> {
     try {
-      const response = await this.apiClient.get(`/entities/${entityId}`, {
+      const response = await this.apiClient.get(`/api/entities/${entityId}`, {
         params: this.buildQueryParams(options),
       });
 
@@ -28,7 +28,7 @@ export class EntityRepositoryImpl implements EntityRepository {
 
   async findByIds(entityIds: string[], options?: CompositionOptions): Promise<Entity[]> {
     try {
-      const response = await this.apiClient.post('/entities/batch', {
+      const response = await this.apiClient.post('/api/entities/batch', {
         entityIds,
         options: this.buildQueryParams(options),
       });
@@ -46,7 +46,7 @@ export class EntityRepositoryImpl implements EntityRepository {
 
   async findByTemplate(templateId: string, options?: CompositionOptions): Promise<Entity[]> {
     try {
-      const response = await this.apiClient.get(`/entities/template/${templateId}`, {
+      const response = await this.apiClient.get(`/api/entities/template/${templateId}`, {
         params: this.buildQueryParams(options),
       });
 
@@ -68,7 +68,7 @@ export class EntityRepositoryImpl implements EntityRepository {
   ): Promise<Entity[]> {
     try {
       const response = await this.apiClient.get(
-        `/entities/${entityId}/relationships/${relationshipType}`,
+        `/api/entities/${entityId}/relationships/${relationshipType}`,
         {
           params: this.buildQueryParams(options),
         }
@@ -86,7 +86,7 @@ export class EntityRepositoryImpl implements EntityRepository {
 
   async save(entity: Entity): Promise<Entity> {
     try {
-      const response = await this.apiClient.put(`/entities/${entity.id}`, entity.toJSON());
+      const response = await this.apiClient.put(`/api/entities/${entity.id}`, entity.toJSON());
       return this.mapToEntity(response.data);
     } catch (error) {
       console.error('Error saving entity:', error);
@@ -96,7 +96,7 @@ export class EntityRepositoryImpl implements EntityRepository {
 
   async delete(entityId: string): Promise<boolean> {
     try {
-      await this.apiClient.delete(`/entities/${entityId}`);
+      await this.apiClient.delete(`/api/entities/${entityId}`);
       return true;
     } catch (error) {
       console.error('Error deleting entity:', error);
@@ -106,7 +106,7 @@ export class EntityRepositoryImpl implements EntityRepository {
 
   async exists(entityId: string): Promise<boolean> {
     try {
-      const response = await this.apiClient.head(`/entities/${entityId}`);
+      const response = await this.apiClient.head(`/api/entities/${entityId}`);
       return response.status === 200;
     } catch (error) {
       return false;
@@ -115,7 +115,7 @@ export class EntityRepositoryImpl implements EntityRepository {
 
   async count(options?: CompositionOptions): Promise<number> {
     try {
-      const response = await this.apiClient.get('/entities/count', {
+      const response = await this.apiClient.get('/api/entities/count', {
         params: this.buildQueryParams(options),
       });
       return response.data?.count || 0;
