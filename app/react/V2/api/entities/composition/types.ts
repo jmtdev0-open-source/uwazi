@@ -28,6 +28,8 @@ export interface CompositionOptions {
   userId?: string;
   userPermissions?: string[];
   language?: string;
+  dateFormat?: string; // Custom date format (e.g., 'YYYY-MM-DD', 'DD/MM/YYYY')
+  includePropertyMetadata?: boolean; // Include property type, inheritance info, and other metadata
   // Field selection options
   fieldNames?: string[]; // Specific field names to process
   fieldPatterns?: string[]; // Pattern matching for field names (e.g., ['title*', '*date*'])

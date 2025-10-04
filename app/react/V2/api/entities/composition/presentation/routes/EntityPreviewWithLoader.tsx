@@ -6,6 +6,7 @@ export default function EntityPreviewWithLoader() {
   const loaderData = useLoaderData();
   console.log('Loader data received:', loaderData);
 
+
   const { entity, compositions, performance } = loaderData as {
     entity: any;
     compositions: {
@@ -58,23 +59,78 @@ export default function EntityPreviewWithLoader() {
       {entity1 ? (
         <div>
           <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
-            <strong>Metadata Fields:</strong> {Object.keys(entity1.metadata || {}).length} fields
+            <strong>Template:</strong> {entity1.template?.name || 'None'} |
+            <strong> Filtered Metadata Fields:</strong> {Object.keys(entity1.metadata || {}).length} fields
           </div>
-          <pre
-            style={{
-              backgroundColor: '#f8f9fa',
-              border: '1px solid #e9ecef',
-              borderRadius: '4px',
-              padding: '16px',
-              overflow: 'auto',
-              fontSize: '12px',
-              lineHeight: '1.4',
-              color: '#333',
-              maxHeight: '50vh',
-            }}
-          >
-            {JSON.stringify(entity1, null, 2)}
-          </pre>
+
+          {/* Show filtered metadata fields */}
+          <div style={{ marginBottom: '16px' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
+              Filtered Fields:
+            </h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {Object.keys(entity1.metadata || {}).map(fieldName => (
+                <span
+                  key={fieldName}
+                  style={{
+                    backgroundColor: color,
+                    color: 'white',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: '500'
+                  }}
+                >
+                  {fieldName}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Show selective raw data and formatted data */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
+                Selective Raw Data:
+              </h4>
+              <pre
+                style={{
+                  backgroundColor: '#f8f9fa',
+                  border: '1px solid #e9ecef',
+                  borderRadius: '4px',
+                  padding: '12px',
+                  overflow: 'auto',
+                  fontSize: '11px',
+                  lineHeight: '1.3',
+                  color: '#333',
+                  maxHeight: '40vh',
+                }}
+              >
+                {JSON.stringify(entity1.rawData, null, 2)}
+              </pre>
+            </div>
+
+            <div>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
+                Formatted Data:
+              </h4>
+              <pre
+                style={{
+                  backgroundColor: '#f8f9fa',
+                  border: '1px solid #e9ecef',
+                  borderRadius: '4px',
+                  padding: '12px',
+                  overflow: 'auto',
+                  fontSize: '11px',
+                  lineHeight: '1.3',
+                  color: '#333',
+                  maxHeight: '40vh',
+                }}
+              >
+                {JSON.stringify(entity1.formattedData, null, 2)}
+              </pre>
+            </div>
+          </div>
         </div>
       ) : (
         <div style={{ color: '#666', fontStyle: 'italic' }}>No data available</div>
@@ -132,7 +188,7 @@ export default function EntityPreviewWithLoader() {
             <strong>Title:</strong> {entity.title}
           </div>
           <div>
-            <strong>Template:</strong> {entity.template || 'None'}
+            <strong>Template:</strong> {entity.template?.name || 'None'}
           </div>
         </div>
 
@@ -164,7 +220,7 @@ export default function EntityPreviewWithLoader() {
       {renderComposition('1. Full Entity Composition (All Fields)', compositions.full, '#0066cc')}
 
       {renderComposition(
-        '2. Date Fields Only (date, daterange)',
+        '2. Date Fields Only (date, daterange, multidate)',
         compositions.dateFields,
         '#28a745'
       )}

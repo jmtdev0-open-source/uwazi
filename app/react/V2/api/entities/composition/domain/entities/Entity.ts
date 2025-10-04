@@ -288,12 +288,16 @@ export class Entity {
 
   // Factory method to create from raw entity data
   static fromRawEntity(rawEntity: any, options: any = {}): Entity {
+    // Create selective raw data based on composition options
+    const selectiveRawData = this.buildSelectiveRawData(rawEntity, options);
+    
     return new Entity(
       rawEntity._id || rawEntity.id,
       rawEntity.sharedId,
       rawEntity.title,
       rawEntity.language,
-      options.includeTemplate ? rawEntity.template : undefined,
+      // Use composed template if provided, otherwise use raw template
+      options.includeTemplate ? (options.composedTemplate || rawEntity.template) : undefined,
       rawEntity.creationDate,
       rawEntity.editDate,
       rawEntity.icon,
@@ -303,8 +307,73 @@ export class Entity {
       options.includeRelationships ? rawEntity.relationships : undefined,
       options.includeFiles ? rawEntity.files : undefined,
       options.includeNavigation ? rawEntity.navigation : undefined,
-      rawEntity,
+      selectiveRawData,
       options.formattedData
     );
+  }
+
+  /**
+   * Build selective raw data based on composition options
+   */
+  private static buildSelectiveRawData(rawEntity: any, options: any): any {
+    const selectiveRawData: any = {
+      _id: rawEntity._id || rawEntity.id,
+      sharedId: rawEntity.sharedId,
+      title: rawEntity.title,
+      language: rawEntity.language,
+      creationDate: rawEntity.creationDate,
+      editDate: rawEntity.editDate,
+      user: rawEntity.user,
+      published: rawEntity.published,
+      __v: rawEntity.__v
+    };
+
+    // Only include template if requested
+    if (options.includeTemplate && rawEntity.template) {
+      selectiveRawData.template = rawEntity.template;
+    }
+
+    // Only include permissions if requested
+    if (options.includePermissions && rawEntity.permissions) {
+      selectiveRawData.permissions = rawEntity.permissions;
+    }
+
+    // Only include metadata if requested and apply filtering
+    if (options.includeMetadata) {
+      if (options.filteredMetadata) {
+        // Use filtered metadata
+        selectiveRawData.metadata = options.filteredMetadata;
+      } else {
+        // Use all metadata
+        selectiveRawData.metadata = rawEntity.metadata;
+      }
+    }
+
+    // Only include relationships if requested
+    if (options.includeRelationships && rawEntity.relationships) {
+      selectiveRawData.relationships = rawEntity.relationships;
+    }
+
+    // Only include files if requested
+    if (options.includeFiles) {
+      if (rawEntity.documents) {
+        selectiveRawData.documents = rawEntity.documents;
+      }
+      if (rawEntity.attachments) {
+        selectiveRawData.attachments = rawEntity.attachments;
+      }
+    }
+
+    // Only include navigation if requested
+    if (options.includeNavigation && rawEntity.navigation) {
+      selectiveRawData.navigation = rawEntity.navigation;
+    }
+
+    // Include obsolete metadata if present
+    if (rawEntity.obsoleteMetadata) {
+      selectiveRawData.obsoleteMetadata = rawEntity.obsoleteMetadata;
+    }
+
+    return selectiveRawData;
   }
 }

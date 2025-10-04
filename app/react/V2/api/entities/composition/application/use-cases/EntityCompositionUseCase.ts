@@ -7,6 +7,7 @@ import { Entity } from '../../domain/entities/Entity';
 import { EntityRepository } from '../../domain/repositories/EntityRepository';
 import { EntityCompositionService } from '../../domain/services/EntityCompositionService';
 import { LegacyMetadataFormatter } from '../../domain/services/LegacyMetadataFormatter';
+import { atomStore, templatesAtom } from 'V2/atoms';
 import {
   CompositionOptions,
   CompositionResult,
@@ -291,14 +292,14 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     );
   }
 
-  async getFormattedMetadata(entityId: string, propertyName: string): Promise<any> {
+  async getFormattedMetadata(entityId: string, propertyName: string, dateFormat?: string): Promise<any> {
     const entity = await this.entityRepository.findBySharedId(entityId);
     if (!entity) return null;
 
     const property = entity.metadata[propertyName];
     if (!property) return null;
 
-    return this.legacyMetadataFormatter.formatProperty(property, entity.language);
+    return this.legacyMetadataFormatter.formatProperty(property, entity.language, dateFormat);
   }
 
   async getFormattedRelationships(entityId: string): Promise<any> {
@@ -340,26 +341,44 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       // Only process the requested fields
       Object.entries(fieldsToProcess).forEach(([key, property]) => {
         const formattedProperty = this.legacyMetadataFormatter.formatProperty(
-          property,
-          entity.language
+        property,
+          entity.language,
+          options.dateFormat,
+          options.includePropertyMetadata
         );
 
-        // Ensure the formatted property has the correct structure
-        formattedMetadata[key] = {
+        // Build the final formatted property
+        const finalProperty: any = {
           ...formattedProperty,
-          // Ensure displayValue is set for UI rendering
+          // Use the displayValue from the formatter if available, otherwise fallback
           displayValue:
-            formattedProperty.formattedValue?.value ||
+            formattedProperty.displayValue ||
+            (Array.isArray(formattedProperty.formattedValue) 
+              ? formattedProperty.formattedValue.join(', ')
+              : formattedProperty.formattedValue) ||
             formattedProperty.value ||
             formattedProperty.label ||
             formattedProperty.name ||
             'Unknown',
           // Preserve the original value for editing
-          originalValue: property.value,
+          originalValue: formattedProperty.originalValue || property.value,
           // Preserve the formatted value for display
           formattedValue: formattedProperty.formattedValue || formattedProperty.value,
         };
+
+        // Include property metadata if requested
+        if (options.includePropertyMetadata) {
+          finalProperty.propertyMetadata = this.buildPropertyMetadata(property, key);
+        }
+
+        formattedMetadata[key] = finalProperty;
       });
+    }
+
+    // Compose template if requested
+    let composedTemplate = undefined;
+    if (options.includeTemplate && entity.template) {
+      composedTemplate = await this.composeTemplate(entity.template);
     }
 
     // Create composed entity using the domain class factory method
@@ -373,6 +392,8 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       formattedData: this.buildFormattedData(entity, formattedMetadata, options),
       // Pass the filtered metadata to the factory method
       filteredMetadata: formattedMetadata,
+      // Pass the composed template
+      composedTemplate: composedTemplate,
     });
 
     return composedEntity;
@@ -552,31 +573,31 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
 
     if (Array.isArray(relationships)) {
       return {
-        hubs: [],
+            hubs: [],
         connections: relationships,
         summary: { totalConnections: relationships.length, hubCount: 0 },
-        navigation: {
-          availableTabs: {},
-          defaultTab: 'info',
-          hasPageView: false,
+            navigation: {
+              availableTabs: {},
+              defaultTab: 'info',
+              hasPageView: false,
           hasRelationships: relationships.length > 0,
-          hasNewRelationships: false,
-        },
+              hasNewRelationships: false,
+            },
       };
-    }
+          }
 
     return (
       relationships || {
-        hubs: [],
-        connections: [],
-        summary: { totalConnections: 0, hubCount: 0 },
-        navigation: {
-          availableTabs: {},
-          defaultTab: 'info',
-          hasPageView: false,
-          hasRelationships: false,
-          hasNewRelationships: false,
-        },
+            hubs: [],
+            connections: [],
+            summary: { totalConnections: 0, hubCount: 0 },
+            navigation: {
+              availableTabs: {},
+              defaultTab: 'info',
+              hasPageView: false,
+              hasRelationships: false,
+              hasNewRelationships: false,
+            },
       }
     );
   }
@@ -627,41 +648,154 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
    * Build formatted data based on options
    */
   private buildFormattedData(
-    entity: Entity,
+    entity: any,
     formattedMetadata: Record<string, any>,
     options: CompositionOptions
   ): any {
     const formattedData: any = {
-      entity: entity,
-      metadata: Object.values(formattedMetadata),
-      relationships: [],
-      files: [],
-      attachments: [],
-      summary: { totalConnections: 0, hubCount: 0 },
-      navigation: {},
+      // Only include relationships if requested
+      relationships: options.includeRelationships ? (entity.relationships || []) : [],
+      // Only include files if requested
+      files: options.includeFiles ? (entity.files?.documents || []) : [],
+      attachments: options.includeFiles ? (entity.files?.attachments || []) : [],
+      // Only include navigation if requested
+      navigation: options.includeNavigation ? (entity.navigation || {}) : {},
+      // Summary information
+      summary: {
+        totalConnections: options.includeRelationships ? (entity.relationships?.length || 0) : 0,
+        hubCount: 0
+      }
     };
 
-    // Only include relationships if requested
-    if (options.includeRelationships) {
-      formattedData.relationships = Array.isArray(entity.relationships)
-        ? entity.relationships
-        : (entity.relationships as any)?.hubs || [];
-      formattedData.summary = Array.isArray(entity.relationships)
-        ? { totalConnections: entity.relationships.length, hubCount: 0 }
-        : (entity.relationships as any)?.summary || { totalConnections: 0, hubCount: 0 };
-    }
-
-    // Only include files if requested
-    if (options.includeFiles) {
-      formattedData.files = entity.files?.documents || [];
-      formattedData.attachments = entity.files?.attachments || [];
-    }
-
-    // Only include navigation if requested
-    if (options.includeNavigation) {
-      formattedData.navigation = entity.navigation;
-    }
-
     return formattedData;
+  }
+
+  /**
+   * Build property metadata information
+   */
+  private buildPropertyMetadata(property: any, fieldName: string): any {
+    const metadata: any = {
+      fieldName: fieldName,
+      propertyType: this.detectPropertyType(property),
+      isInherited: this.isInheritedProperty(property),
+      isRequired: property.required || false,
+      isMultiple: property.multiple || false,
+      showInCard: property.showInCard || false,
+      noLabel: property.noLabel || false,
+      fullWidth: property.fullWidth || false,
+      obsolete: property.obsolete || false,
+      indexInTemplate: property.indexInTemplate,
+      parent: property.parent,
+      translateContext: property.translateContext,
+      fileName: property.fileName,
+      timeLinks: property.timeLinks,
+      relatedEntity: property.relatedEntity,
+      inheritedType: property.inheritedType,
+      inheritedValue: property.inheritedValue,
+      denormalizedProperty: property.denormalizedProperty,
+      sortedBy: property.sortedBy,
+      timestamp: property.timestamp,
+      style: property.style,
+      url: property.url,
+      icon: property.icon
+    };
+
+    // Add inheritance details if inherited
+    if (metadata.isInherited) {
+      metadata.inheritanceDetails = {
+        inheritedType: property.inheritedType,
+        inheritedValue: property.inheritedValue,
+        originalValue: property.originalValue,
+        inheritedFrom: property.inheritedFrom || 'Unknown'
+      };
+    }
+
+    // Add relationship details if it's a relationship property
+    if (metadata.propertyType === 'relationship') {
+      metadata.relationshipDetails = {
+        thesaurus: property.thesaurus || [],
+        entityType: property.entityType,
+        relationshipType: property.relationshipType,
+        hub: property.hub,
+        hasNewRelationships: property.hasNewRelationships || false
+      };
+    }
+
+    // Add file details if it's a file property
+    if (metadata.propertyType === 'image' || metadata.propertyType === 'media') {
+      metadata.fileDetails = {
+        fileName: property.fileName,
+        timeLinks: property.timeLinks,
+        fileType: property.fileType,
+        mimeType: property.mimeType,
+        size: property.size
+      };
+    }
+
+    return metadata;
+  }
+
+  /**
+   * Detect the property type based on the property structure
+   */
+  private detectPropertyType(property: any): string {
+    if (property.type) return property.type;
+    
+    if (property.value !== undefined) {
+      if (typeof property.value === 'number' && property.value > 1000000000) return 'date';
+      if (typeof property.value === 'object' && property.value.from && property.value.to) return 'daterange';
+      if (Array.isArray(property.value)) {
+        if (property.value.length > 0 && typeof property.value[0] === 'number') return 'multidate';
+        if (property.value.length > 0 && typeof property.value[0] === 'object' && property.value[0].from && property.value[0].to) return 'multidaterange';
+        if (property.value.length > 0 && typeof property.value[0] === 'object' && property.value[0].value && property.value[0].label) return 'multiselect';
+      }
+      if (typeof property.value === 'object' && property.value.value && property.value.label) return 'select';
+      if (typeof property.value === 'object' && property.value.lat && property.value.lon) return 'geolocation';
+      if (typeof property.value === 'string' && property.value.includes('/api/files/')) {
+        if (property.value.includes('.mp4') || property.value.includes('.avi') || property.value.includes('.mov')) return 'media';
+        return 'image';
+      }
+    }
+    
+    return 'text';
+  }
+
+  /**
+   * Check if a property is inherited
+   */
+  private isInheritedProperty(property: any): boolean {
+    return !!(property.inherited || property.inheritedType || property.inheritedValue || property.originalValue);
+  }
+
+  /**
+   * Compose template from template ID
+   */
+  private async composeTemplate(templateId: string): Promise<any> {
+    try {
+      // Get templates from atom store
+      const templates = atomStore.get(templatesAtom);
+      console.log('Templates from atom store:', templates);
+      console.log('Looking for template ID:', templateId);
+      
+      // Find the template by ID
+      const template = templates.find((t: any) => t._id === templateId);
+      console.log('Found template:', template);
+      
+      const result = {
+        id: templateId,
+        name: template?.name || templateId, // Use actual template name from atom store
+        properties: []
+      };
+      
+      console.log('Composed template result:', result);
+      return result;
+    } catch (error) {
+      console.warn(`Failed to compose template ${templateId}:`, error);
+      return {
+        id: templateId,
+        name: templateId, // Fallback to ID if composition fails
+        properties: []
+      };
+    }
   }
 }
