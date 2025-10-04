@@ -371,6 +371,8 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       includeFiles: options.includeFiles,
       includeNavigation: options.includeNavigation,
       formattedData: this.buildFormattedData(entity, formattedMetadata, options),
+      // Pass the filtered metadata to the factory method
+      filteredMetadata: formattedMetadata,
     });
 
     return composedEntity;
@@ -423,7 +425,17 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     // Priority 4: If fieldTypes is specified, filter by type
     if (options.fieldTypes && options.fieldTypes.length > 0) {
       Object.entries(metadata).forEach(([key, property]) => {
-        if (property.type && options.fieldTypes!.includes(property.type)) {
+        // Check if the field name matches any of the requested types
+        // or if the field name contains the type (e.g., 'geolocation_geolocation' contains 'geolocation')
+        const fieldName = key.toLowerCase();
+        const matchesType = options.fieldTypes!.some(type => {
+          const typeLower = type.toLowerCase();
+          return fieldName === typeLower || 
+                 fieldName.includes(typeLower) || 
+                 fieldName.endsWith(`_${typeLower}`);
+        });
+        
+        if (matchesType) {
           fieldsToProcess[key] = property;
         }
       });

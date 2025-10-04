@@ -298,7 +298,8 @@ export class Entity {
       rawEntity.editDate,
       rawEntity.icon,
       options.includePermissions ? rawEntity.permissions : undefined,
-      options.includeMetadata ? rawEntity.metadata : undefined,
+      // Use filtered metadata if provided, otherwise use raw metadata
+      options.includeMetadata ? (options.filteredMetadata || rawEntity.metadata) : undefined,
       options.includeRelationships ? rawEntity.relationships : undefined,
       options.includeFiles ? rawEntity.files : undefined,
       options.includeNavigation ? rawEntity.navigation : undefined,

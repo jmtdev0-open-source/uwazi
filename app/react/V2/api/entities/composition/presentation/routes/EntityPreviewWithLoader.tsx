@@ -56,21 +56,26 @@ export default function EntityPreviewWithLoader() {
       </h2>
 
       {entity1 ? (
-        <pre
-          style={{
-            backgroundColor: '#f8f9fa',
-            border: '1px solid #e9ecef',
-            borderRadius: '4px',
-            padding: '16px',
-            overflow: 'auto',
-            fontSize: '12px',
-            lineHeight: '1.4',
-            color: '#333',
-            maxHeight: '50vh',
-          }}
-        >
-          {JSON.stringify(entity, null, 2)}
-        </pre>
+        <div>
+          <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
+            <strong>Metadata Fields:</strong> {Object.keys(entity1.metadata || {}).length} fields
+          </div>
+          <pre
+            style={{
+              backgroundColor: '#f8f9fa',
+              border: '1px solid #e9ecef',
+              borderRadius: '4px',
+              padding: '16px',
+              overflow: 'auto',
+              fontSize: '12px',
+              lineHeight: '1.4',
+              color: '#333',
+              maxHeight: '50vh',
+            }}
+          >
+            {JSON.stringify(entity1, null, 2)}
+          </pre>
+        </div>
       ) : (
         <div style={{ color: '#666', fontStyle: 'italic' }}>No data available</div>
       )}
