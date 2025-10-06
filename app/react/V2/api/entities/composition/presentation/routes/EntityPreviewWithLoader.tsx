@@ -110,26 +110,6 @@ export default function EntityPreviewWithLoader() {
               </pre>
             </div>
 
-            <div>
-              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
-                Formatted Data:
-              </h4>
-              <pre
-                style={{
-                  backgroundColor: '#f8f9fa',
-                  border: '1px solid #e9ecef',
-                  borderRadius: '4px',
-                  padding: '12px',
-                  overflow: 'auto',
-                  fontSize: '11px',
-                  lineHeight: '1.3',
-                  color: '#333',
-                  maxHeight: '40vh',
-                }}
-              >
-                {JSON.stringify(entity1.formattedData, null, 2)}
-              </pre>
-            </div>
           </div>
         </div>
       ) : (

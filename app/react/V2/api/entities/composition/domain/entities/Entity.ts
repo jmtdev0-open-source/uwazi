@@ -330,7 +330,8 @@ export class Entity {
 
     // Only include template if requested
     if (options.includeTemplate && rawEntity.template) {
-      selectiveRawData.template = rawEntity.template;
+      // Use composed template if available, otherwise use raw template
+      selectiveRawData.template = options.composedTemplate || rawEntity.template;
     }
 
     // Only include permissions if requested

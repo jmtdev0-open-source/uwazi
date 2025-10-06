@@ -389,7 +389,6 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       includeRelationships: options.includeRelationships,
       includeFiles: options.includeFiles,
       includeNavigation: options.includeNavigation,
-      formattedData: this.buildFormattedData(entity, formattedMetadata, options),
       // Pass the filtered metadata to the factory method
       filteredMetadata: formattedMetadata,
       // Pass the composed template
@@ -644,31 +643,6 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     );
   }
 
-  /**
-   * Build formatted data based on options
-   */
-  private buildFormattedData(
-    entity: any,
-    formattedMetadata: Record<string, any>,
-    options: CompositionOptions
-  ): any {
-    const formattedData: any = {
-      // Only include relationships if requested
-      relationships: options.includeRelationships ? (entity.relationships || []) : [],
-      // Only include files if requested
-      files: options.includeFiles ? (entity.files?.documents || []) : [],
-      attachments: options.includeFiles ? (entity.files?.attachments || []) : [],
-      // Only include navigation if requested
-      navigation: options.includeNavigation ? (entity.navigation || {}) : {},
-      // Summary information
-      summary: {
-        totalConnections: options.includeRelationships ? (entity.relationships?.length || 0) : 0,
-        hubCount: 0
-      }
-    };
-
-    return formattedData;
-  }
 
   /**
    * Build property metadata information
@@ -774,21 +748,15 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     try {
       // Get templates from atom store
       const templates = atomStore.get(templatesAtom);
-      console.log('Templates from atom store:', templates);
-      console.log('Looking for template ID:', templateId);
       
       // Find the template by ID
       const template = templates.find((t: any) => t._id === templateId);
-      console.log('Found template:', template);
       
-      const result = {
+      return {
         id: templateId,
         name: template?.name || templateId, // Use actual template name from atom store
         properties: []
       };
-      
-      console.log('Composed template result:', result);
-      return result;
     } catch (error) {
       console.warn(`Failed to compose template ${templateId}:`, error);
       return {
