@@ -368,6 +368,10 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
 
         // Include property metadata if requested
         if (options.includePropertyMetadata) {
+          // Debug: Log the raw property structure for relationship fields
+          if (key === 'relationship') {
+            console.log('🔍 Raw property structure for relationship:', JSON.stringify(property, null, 2));
+          }
           finalProperty.propertyMetadata = this.buildPropertyMetadata(property, key);
         }
 
@@ -682,6 +686,21 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         originalValue: property.originalValue,
         inheritedFrom: property.inheritedFrom || 'Unknown'
       };
+      
+      // For relationship properties, add detailed inherited property metadata
+      if (metadata.propertyType === 'relationship' && property.options) {
+        metadata.inheritedPropertyMetadata = property.options
+          .filter((opt: any) => opt.inheritedValue && opt.inheritedValue.length > 0)
+          .map((opt: any) => ({
+            optionValue: opt.value,
+            optionLabel: opt.label,
+            inheritedType: opt.inheritedType,
+            inheritedValues: opt.inheritedValue.map((iv: any) => ({
+              value: iv.value,
+              label: iv.label
+            }))
+          }));
+      }
     }
 
     // Add relationship details if it's a relationship property
@@ -715,6 +734,17 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   private detectPropertyType(property: any): string {
     if (property.type) return property.type;
     
+    // Check for relationship properties by looking at options structure
+    if (property.options && Array.isArray(property.options)) {
+      const hasRelationshipOptions = property.options.some((opt: any) => 
+        opt.type === 'entity' || opt.inheritedType || opt.inheritedValue
+      );
+      if (hasRelationshipOptions) {
+        console.log('🔍 Detected relationship property with options:', property.options.length);
+        return 'relationship';
+      }
+    }
+    
     if (property.value !== undefined) {
       if (typeof property.value === 'number' && property.value > 1000000000) return 'date';
       if (typeof property.value === 'object' && property.value.from && property.value.to) return 'daterange';
@@ -738,7 +768,19 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
    * Check if a property is inherited
    */
   private isInheritedProperty(property: any): boolean {
-    return !!(property.inherited || property.inheritedType || property.inheritedValue || property.originalValue);
+    // Check direct inheritance flags
+    if (property.inherited || property.inheritedType || property.inheritedValue || property.originalValue) {
+      return true;
+    }
+    
+    // Check if any options have inherited values (for relationship properties)
+    if (property.options && Array.isArray(property.options)) {
+      return property.options.some((opt: any) => 
+        opt.inheritedValue && opt.inheritedValue.length > 0
+      );
+    }
+    
+    return false;
   }
 
   /**
