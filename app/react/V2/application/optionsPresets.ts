@@ -46,5 +46,3 @@ export const selectFieldsOptions = (): CompositionOptions => ({
   includeFields: ['select', 'multiselect', 'relationship'],
   includePropertyMetadata: true,
 });
-
-

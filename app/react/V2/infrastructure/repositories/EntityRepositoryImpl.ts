@@ -1,7 +1,7 @@
 import { IncomingHttpHeaders } from 'http';
 import { EntityRepository } from './EntityRepository';
 import { CompositionOptions } from '../../domain/entities/types';
-import { EntityDTO } from './EntityDTO';
+import { EntitySchema } from 'shared/types/entityType';
 
 export class EntityRepositoryImpl implements EntityRepository {
   constructor(private readonly apiClient: any) {}
@@ -10,7 +10,7 @@ export class EntityRepositoryImpl implements EntityRepository {
     entityId: string,
     _options?: CompositionOptions,
     headers?: IncomingHttpHeaders
-  ): Promise<EntityDTO | null> {
+  ): Promise<EntitySchema | null> {
     try {
       const response = await this.apiClient.getBySharedId(
         {

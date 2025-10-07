@@ -2,7 +2,11 @@ import { LoaderFunction } from 'react-router';
 import * as entitiesApi from '../../api/entities/index';
 import { IncomingHttpHeaders } from 'http';
 import { CompositionServiceFactory } from 'app/V2/application';
-import { fullDetailOptions, dateFieldsOptions, selectFieldsOptions } from 'app/V2/application/optionsPresets';
+import {
+  fullDetailOptions,
+  dateFieldsOptions,
+  selectFieldsOptions,
+} from 'app/V2/application/optionsPresets';
 
 export const entityPreviewLoader =
   (headers?: IncomingHttpHeaders): LoaderFunction =>

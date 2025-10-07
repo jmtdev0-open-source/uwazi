@@ -1,7 +1,7 @@
 import { CompositionOptions, Entity, EntityFactory } from 'app/V2/domain';
 import { IncomingHttpHeaders } from 'http';
 import { atomStore, templatesAtom } from 'app/V2/atoms';
-import { MetadataFormatter } from './MetadataFormatter';
+import { PropertyValueBuilder } from './PropertyValueBuilder';
 
 export interface EntityFormatter {
   composeEntityWithFormatting(
@@ -12,10 +12,10 @@ export interface EntityFormatter {
 }
 
 export class EntityFormatterImpl implements EntityFormatter {
-  private readonly metadataFormatter: MetadataFormatter;
+  private readonly propertyValueBuilder: PropertyValueBuilder;
 
-  constructor(metadataFormatter: MetadataFormatter) {
-    this.metadataFormatter = metadataFormatter;
+  constructor(propertyValueBuilder: PropertyValueBuilder) {
+    this.propertyValueBuilder = propertyValueBuilder;
   }
 
   async composeEntityWithFormatting(
@@ -28,7 +28,7 @@ export class EntityFormatterImpl implements EntityFormatter {
     if (options.includeMetadata) {
       let fieldsToProcess = this.getFieldsToProcess(entity.metadata, options);
       Object.entries(fieldsToProcess).forEach(([key, property]) => {
-        const formattedProperty = this.metadataFormatter.formatProperty(
+        const formattedProperty = this.propertyValueBuilder.formatProperty(
           property,
           entity.language,
           options.dateFormat,

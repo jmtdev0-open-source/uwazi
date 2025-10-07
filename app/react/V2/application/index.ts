@@ -1,5 +1,5 @@
-export type { MetadataFormatter as LegacyMetadataFormatter } from './services/MetadataFormatter';
-export { MetadataFormatterImpl } from './services/MetadataFormatter';
+export type { PropertyValueBuilder as LegacyMetadataFormatter } from './services/PropertyValueBuilder';
+export { PropertyValueBuilder } from './services/PropertyValueBuilder';
 
 export type { EntityCompositionUseCase } from './useCases/EntityCompositionUseCase';
 export { EntityCompositionUseCaseImpl } from './useCases/EntityCompositionUseCase';

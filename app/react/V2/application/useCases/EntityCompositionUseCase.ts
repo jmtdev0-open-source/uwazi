@@ -4,7 +4,7 @@
  */
 import { IncomingHttpHeaders } from 'http';
 import { EntityRepository } from '../../infrastructure/repositories/EntityRepository';
-import { MetadataFormatter } from '../services/MetadataFormatter';
+import { PropertyValueBuilder } from '../services/PropertyValueBuilder';
 import {
   CompositionOptions,
   CompositionResult,
@@ -46,7 +46,7 @@ export interface EntityCompositionUseCase {
 export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
   constructor(
     private readonly entityRepository: EntityRepository,
-    private readonly metadataFormatter: MetadataFormatter,
+    private readonly propertyValueBuilder: PropertyValueBuilder,
     private readonly entityFormatter: EntityFormatter
   ) {}
 

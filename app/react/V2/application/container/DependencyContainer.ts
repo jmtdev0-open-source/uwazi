@@ -4,14 +4,14 @@
  */
 import { EntityRepository } from '../../infrastructure/repositories/EntityRepository';
 import { EntityFormatter, EntityFormatterImpl } from '../services/EntityFormatter';
-import { MetadataFormatter, MetadataFormatterImpl } from '../services/MetadataFormatter';
+import { PropertyValueBuilder } from '../services/PropertyValueBuilder';
 import { EntityCompositionUseCase } from '../useCases/EntityCompositionUseCase';
 import { EntityCompositionUseCaseImpl } from '../useCases/EntityCompositionUseCase';
 
 export class DependencyContainer {
   private static instance: DependencyContainer;
   private entityRepository: EntityRepository | null = null;
-  private metadataFormatter: MetadataFormatter | null = null;
+  private propertyValueBuilder: PropertyValueBuilder | null = null;
   private entityFormatter: EntityFormatter | null = null;
   private entityCompositionUseCase: EntityCompositionUseCase | null = null;
 
@@ -28,8 +28,8 @@ export class DependencyContainer {
     this.entityRepository = repository;
   }
 
-  setMetadataFormatter(formatter: MetadataFormatter): void {
-    this.metadataFormatter = formatter;
+  setPropertyValueBuilder(builder: PropertyValueBuilder): void {
+    this.propertyValueBuilder = builder;
   }
 
   setEntityFormatter(formatter: EntityFormatter): void {
@@ -43,16 +43,16 @@ export class DependencyContainer {
     return this.entityRepository;
   }
 
-  getMetadataFormatter(): MetadataFormatter {
-    if (!this.metadataFormatter) {
-      this.metadataFormatter = new MetadataFormatterImpl();
+  getPropertyValueBuilder(): PropertyValueBuilder {
+    if (!this.propertyValueBuilder) {
+      this.propertyValueBuilder = new PropertyValueBuilder();
     }
-    return this.metadataFormatter;
+    return this.propertyValueBuilder;
   }
 
   getEntityFormatter(): EntityFormatter {
     if (!this.entityFormatter) {
-      this.entityFormatter = new EntityFormatterImpl(this.getMetadataFormatter());
+      this.entityFormatter = new EntityFormatterImpl(this.getPropertyValueBuilder());
     }
     return this.entityFormatter;
   }
@@ -61,7 +61,7 @@ export class DependencyContainer {
     if (!this.entityCompositionUseCase) {
       this.entityCompositionUseCase = new EntityCompositionUseCaseImpl(
         this.getEntityRepository(),
-        this.getMetadataFormatter(),
+        this.getPropertyValueBuilder(),
         this.getEntityFormatter()
       );
     }
@@ -70,7 +70,7 @@ export class DependencyContainer {
 
   reset(): void {
     this.entityRepository = null;
-    this.metadataFormatter = null;
+    this.propertyValueBuilder = null;
     this.entityCompositionUseCase = null;
     this.entityFormatter = null;
   }
