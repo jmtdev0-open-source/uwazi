@@ -106,7 +106,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
             results.push(composedEntity);
           } catch (error) {
             errors.push({
-              entityId: entity._id,
+              entityId: entity._id?.toString() || 'unknown',
               error: error instanceof Error ? error.message : 'Unknown error',
               timestamp: new Date(),
             });
@@ -142,7 +142,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
 
   async composeEntitiesForCardView(
     entityIds: string[],
-    context: { userId?: string; userPermissions?: string[] }
+    _context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
     const builder = this.fluentForEntities(entityIds).forCardView();
     return builder.compose() as Promise<BatchCompositionResult>;
@@ -150,7 +150,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
 
   async composeEntitiesForDetailView(
     entityIds: string[],
-    context: { userId?: string; userPermissions?: string[] }
+    _context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
     const builder = this.fluentForEntities(entityIds).forDetailView();
     return builder.compose() as Promise<BatchCompositionResult>;

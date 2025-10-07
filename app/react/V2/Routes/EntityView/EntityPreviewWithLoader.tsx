@@ -69,17 +69,19 @@ const EntityPreviewContent = ({
         {title}
       </h2>
 
-      {loading ? (
+      {loading && (
         <div style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', padding: '20px' }}>
           Loading...
         </div>
-      ) : error ? (
+      )}
+      {!loading && error && (
         <div
           style={{ color: 'red', padding: '20px', backgroundColor: '#ffe6e6', borderRadius: '4px' }}
         >
           <strong>Error:</strong> {error}
         </div>
-      ) : entity ? (
+      )}
+      {!loading && !error && entity && (
         <div>
           <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
             <strong>Template:</strong> {entity.template?.name || 'None'} |
@@ -142,7 +144,8 @@ const EntityPreviewContent = ({
             </div>
           </div>
         </div>
-      ) : (
+      )}
+      {!loading && !error && entity && (
         <div style={{ color: '#666', fontStyle: 'italic' }}>No data available</div>
       )}
     </div>
@@ -232,7 +235,7 @@ const EntityPreviewContent = ({
   );
 };
 
-export default function EntityPreviewWithLoader() {
+const EntityPreviewWithLoader = () => {
   const loaderData = useLoaderData();
 
   const { full, dateFields, selectFields } = loaderData as {
@@ -246,7 +249,7 @@ export default function EntityPreviewWithLoader() {
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
+    void (async () => {
       try {
         const uc = await CompositionServiceFactory.createCompositionService(entitiesApi);
         if (!mounted) return;
@@ -271,114 +274,6 @@ export default function EntityPreviewWithLoader() {
     );
   }
 
-  const renderComposition = (
-    title: string,
-    entity1: Entity | null,
-    color: string,
-    loading?: boolean,
-    error?: string | null,
-    performanceData?: any
-  ) => (
-    <div
-      style={{
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        padding: '20px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        marginBottom: '20px',
-      }}
-    >
-      <h2
-        style={{
-          fontSize: '18px',
-          fontWeight: '600',
-          color: color,
-          marginBottom: '16px',
-          borderBottom: `2px solid ${color}`,
-          paddingBottom: '8px',
-        }}
-      >
-        {title}
-      </h2>
-
-      {loading ? (
-        <div style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', padding: '20px' }}>
-          Loading...
-        </div>
-      ) : error ? (
-        <div
-          style={{ color: 'red', padding: '20px', backgroundColor: '#ffe6e6', borderRadius: '4px' }}
-        >
-          <strong>Error:</strong> {error}
-        </div>
-      ) : entity1 ? (
-        <div>
-          <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
-            <strong>Template:</strong> {entity1.template?.name || 'None'} |
-            <strong> Filtered Metadata Fields:</strong> {Object.keys(entity1.metadata || {}).length}{' '}
-            fields
-            {performanceData && (
-              <span style={{ marginLeft: '16px', color: '#28a745' }}>
-                <strong>Hook Performance:</strong> {performanceData.duration.toFixed(2)}ms
-              </span>
-            )}
-          </div>
-
-          {/* Show filtered metadata fields */}
-          <div style={{ marginBottom: '16px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
-              Filtered Fields:
-            </h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-              {Object.keys(entity1.metadata || {}).map(fieldName => (
-                <span
-                  key={fieldName}
-                  style={{
-                    backgroundColor: color,
-                    color: 'white',
-                    padding: '2px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: '500',
-                  }}
-                >
-                  {fieldName}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Show selective raw data and formatted data */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div>
-              <h4
-                style={{ fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}
-              >
-                Selective Raw Data:
-              </h4>
-              <pre
-                style={{
-                  backgroundColor: '#f8f9fa',
-                  border: '1px solid #e9ecef',
-                  borderRadius: '4px',
-                  padding: '12px',
-                  overflow: 'auto',
-                  fontSize: '11px',
-                  lineHeight: '1.3',
-                  color: '#333',
-                  maxHeight: '40vh',
-                }}
-              >
-                {JSON.stringify(entity1.rawData, null, 2)}
-              </pre>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div style={{ color: '#666', fontStyle: 'italic' }}>No data available</div>
-      )}
-    </div>
-  );
 
   return providerReady && useCase ? (
     <EntityCompositionProvider useCase={useCase}>
@@ -387,4 +282,6 @@ export default function EntityPreviewWithLoader() {
   ) : (
     <div style={{ padding: '20px' }}>Initializing composition context…</div>
   );
-}
+};
+
+export default EntityPreviewWithLoader;

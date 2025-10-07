@@ -57,7 +57,7 @@ export class PropertyValueBuilder {
   ) {}
 
   buildPropertyValues(descriptor: NormalizedPropertyDescriptor): AnyPropertyValue[] {
-    const { type, rawValue, lookups } = descriptor;
+    const { type } = descriptor;
 
     switch (type) {
       case 'date':
@@ -88,7 +88,7 @@ export class PropertyValueBuilder {
   }
 
   // Public interface methods (merged from MetadataFormatter)
-  
+
   // Legacy interface (for backward compatibility)
   formatProperty(
     property: any,
@@ -115,7 +115,7 @@ export class PropertyValueBuilder {
 
   // Unified interface using normalized descriptors
   formatNormalizedProperty(descriptor: NormalizedPropertyDescriptor): any {
-    const { type, values } = descriptor;
+    const { values } = descriptor;
 
     // Use the pre-computed values from the unified structure
     if (values.length === 0) {
@@ -271,7 +271,13 @@ export class PropertyValueBuilder {
       },
       displayValue: this.stripHtml(property.value.html || property.value),
       // Match sample structure
-      values: [{ value: property.value, label: this.stripHtml(property.value.html || property.value), displayValue: this.stripHtml(property.value.html || property.value) }],
+      values: [
+        {
+          value: property.value,
+          label: this.stripHtml(property.value.html || property.value),
+          displayValue: this.stripHtml(property.value.html || property.value),
+        },
+      ],
     };
   }
 
@@ -325,7 +331,13 @@ export class PropertyValueBuilder {
       },
       displayValue: `Inherited: ${property.value.originalValue}`,
       // Match sample structure
-      values: [{ value: property.value.originalValue, label: `Inherited: ${property.value.originalValue}`, displayValue: `Inherited: ${property.value.originalValue}` }],
+      values: [
+        {
+          value: property.value.originalValue,
+          label: `Inherited: ${property.value.originalValue}`,
+          displayValue: `Inherited: ${property.value.originalValue}`,
+        },
+      ],
     };
   }
 
@@ -350,8 +362,8 @@ export class PropertyValueBuilder {
     if (rawValue === undefined || rawValue === null) return [];
 
     const list: number[] = Array.isArray(rawValue)
-      ? rawValue.map(v => (typeof v === 'number' ? v : parseInt(v)))
-      : [typeof rawValue === 'number' ? rawValue : parseInt(rawValue)];
+      ? rawValue.map(v => (typeof v === 'number' ? v : parseInt(v, 10)))
+      : [typeof rawValue === 'number' ? rawValue : parseInt(rawValue, 10)];
 
     return list.map(timestamp => {
       const formatted = this.formatDate(timestamp, this.language);
@@ -374,7 +386,11 @@ export class PropertyValueBuilder {
       : [{ from: rawValue.from, to: rawValue.to }];
 
     return list.map(range => {
-      const formatted = this.formatDateRange(range.from as number, range.to as number, this.language);
+      const formatted = this.formatDateRange(
+        range.from as number,
+        range.to as number,
+        this.language
+      );
       const normalizedFormatted = {
         originalValue: { from: range.from as number, to: range.to as number },
         formattedValue: formatted.formattedValue,
@@ -417,7 +433,6 @@ export class PropertyValueBuilder {
     if (!rawValue) return [];
 
     const relationshipType = lookups.relationshipTypeById[rawValue.relationshipTypeId];
-    const thesaurus = lookups.thesaurusById[rawValue.thesaurusId];
     const isInherited = descriptor.isInherited === true;
 
     const ids: string[] = Array.isArray(rawValue.entityIds) ? rawValue.entityIds : [];
@@ -474,7 +489,7 @@ export class PropertyValueBuilder {
   }
 
   private buildFileValues(descriptor: NormalizedPropertyDescriptor): FilePropertyValue[] {
-    const { rawValue, lookups } = descriptor;
+    const { rawValue } = descriptor;
     if (!rawValue) return [];
 
     const list = Array.isArray(rawValue) ? rawValue : [rawValue];
@@ -557,7 +572,6 @@ export class PropertyValueBuilder {
 
   // Formatting methods (reuse existing logic)
 
-
   private buildMetadata(descriptor: NormalizedPropertyDescriptor): any {
     return {
       isInherited: descriptor.isInherited,
@@ -594,7 +608,13 @@ export class PropertyValueBuilder {
       },
       displayValue: property.value.label || property.value.fileName || 'Unknown',
       // Match sample structure
-      values: [{ value: property.value, label: property.value.label || property.value.fileName || 'Unknown', displayValue: property.value.label || property.value.fileName || 'Unknown' }],
+      values: [
+        {
+          value: property.value,
+          label: property.value.label || property.value.fileName || 'Unknown',
+          displayValue: property.value.label || property.value.fileName || 'Unknown',
+        },
+      ],
     };
   }
 
