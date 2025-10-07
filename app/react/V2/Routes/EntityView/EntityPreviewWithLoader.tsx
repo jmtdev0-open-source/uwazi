@@ -4,7 +4,6 @@ import {
   useEntityComposition,
   EntityCompositionProvider,
 } from '../../CustomHooks/useEntityComposition';
-import { EntityComposer } from '../../application/EntityComposer';
 import { CompositionServiceFactory } from 'app/V2/application';
 import * as entitiesApi from '../../api/entities/index';
 import { Entity } from 'app/V2/domain/entities/Entity';
@@ -30,7 +29,7 @@ const EntityPreviewContent = ({
         includeRelationships: false,
         includeFiles: false,
         includeNavigation: false,
-        fieldTypes: ['date', 'daterange', 'multidate'],
+        includeFields: ['date', 'daterange', 'multidate'],
         dateFormat: 'YYYY-MM-DD',
         includePropertyMetadata: true,
       })
@@ -252,7 +251,6 @@ export default function EntityPreviewWithLoader() {
 
   const [providerReady, setProviderReady] = useState(false);
   const [useCase, setUseCase] = useState<any>(null);
-  const [composer, setComposer] = useState<EntityComposer | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -261,7 +259,6 @@ export default function EntityPreviewWithLoader() {
         const uc = await CompositionServiceFactory.createCompositionService(entitiesApi);
         if (!mounted) return;
         setUseCase(uc);
-        setComposer(new EntityComposer(uc));
         setProviderReady(true);
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -391,8 +388,8 @@ export default function EntityPreviewWithLoader() {
     </div>
   );
 
-  return providerReady && useCase && composer ? (
-    <EntityCompositionProvider useCase={useCase} composer={composer}>
+  return providerReady && useCase ? (
+    <EntityCompositionProvider useCase={useCase}>
       <EntityPreviewContent compositions={{ full, dateFields, selectFields }} />
     </EntityCompositionProvider>
   ) : (

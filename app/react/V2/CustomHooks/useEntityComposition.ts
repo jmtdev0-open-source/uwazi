@@ -4,24 +4,21 @@
  */
 import React, { useState, useCallback, useContext, createContext } from 'react';
 import { EntityCompositionUseCase } from '../application/useCases/EntityCompositionUseCase';
-import { EntityComposer } from '../application/EntityComposer';
 import { CompositionOptions } from '../domain/entities/types';
 import { Entity } from 'app/V2/domain/entities/Entity';
 
 // Context for dependency injection
 const EntityCompositionContext = createContext<{
   useCase: EntityCompositionUseCase;
-  composer: EntityComposer;
 } | null>(null);
 
 export const EntityCompositionProvider: React.FC<{
   children: React.ReactNode;
   useCase: EntityCompositionUseCase;
-  composer: EntityComposer;
-}> = ({ children, useCase, composer }) => {
+}> = ({ children, useCase }) => {
   return React.createElement(
     EntityCompositionContext.Provider,
-    { value: { useCase, composer } },
+    { value: { useCase } },
     children
   );
 };
@@ -109,23 +106,23 @@ export const useEntityComposition = (useCase?: EntityCompositionUseCase) => {
 // Fluent API hook
 export const useFluentEntityComposition = (_useCase?: EntityCompositionUseCase) => {
   const context = useEntityCompositionContext();
-  const composer = context.composer;
+  const useCase = _useCase || context.useCase;
 
   const [loading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fluentForEntity = useCallback(
     (entityId: string) => {
-      return composer.fluentForEntity(entityId);
+      return useCase.fluentForEntity(entityId);
     },
-    [composer]
+    [useCase]
   );
 
   const fluentForEntities = useCallback(
     (entityIds: string[]) => {
-      return composer.fluentForEntities(entityIds);
+      return useCase.fluentForEntities(entityIds);
     },
-    [composer]
+    [useCase]
   );
 
   return {

@@ -14,7 +14,6 @@ export interface CompositionContext {
 
 export interface CompositionOptions {
   includeTemplate?: boolean;
-  includeProperties?: boolean;
   includeMetadata?: boolean;
   includeRelationships?: boolean;
   includeFiles?: boolean;
@@ -30,8 +29,6 @@ export interface CompositionOptions {
   dateFormat?: string; // Custom date format (e.g., 'YYYY-MM-DD', 'DD/MM/YYYY')
   includePropertyMetadata?: boolean; // Include property type, inheritance info, and other metadata
   // Field selection options
-  fieldNames?: string[]; // Specific field names to process
-  fieldTypes?: string[]; // Specific field types to process (e.g., ['select', 'date'])
   includeFields?: string[]; // Field names to include (overrides other options)
 }
 

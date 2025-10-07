@@ -18,7 +18,6 @@ export const entityPreviewLoader =
           entityId,
           {
             includeTemplate: true,
-            includeProperties: true,
             includeMetadata: true,
             includeRelationships: true,
             includeFiles: true,
@@ -33,13 +32,12 @@ export const entityPreviewLoader =
           entityId,
           {
             includeTemplate: true,
-            includeProperties: true,
             includeMetadata: true,
             includeRelationships: false,
             includeFiles: false,
             includeNavigation: false,
             includePermissions: false,
-            fieldTypes: ['date', 'daterange', 'multidate'],
+            includeFields: ['date', 'daterange', 'multidate'],
             dateFormat: 'YYYY-MM-DD', // Default date format
             includePropertyMetadata: true, // Include property metadata
           },
@@ -49,13 +47,12 @@ export const entityPreviewLoader =
           entityId,
           {
             includeTemplate: true,
-            includeProperties: true,
             includeMetadata: true,
             includeRelationships: true,
             includeFiles: false,
             includeNavigation: false,
             includePermissions: false,
-            fieldTypes: ['select', 'multiselect', 'relationship'],
+            includeFields: ['select', 'multiselect', 'relationship'],
             includePropertyMetadata: true, // Include property metadata
           },
           { headers: headers }
