@@ -5,6 +5,7 @@ import {
   EntityCompositionProvider,
 } from '../../CustomHooks/useEntityComposition';
 import { CompositionServiceFactory } from 'app/V2/application';
+import { dateFieldsOptions } from 'app/V2/application/optionsPresets';
 import * as entitiesApi from '../../api/entities/index';
 import { Entity } from 'app/V2/domain/entities/Entity';
 
@@ -23,16 +24,7 @@ const EntityPreviewContent = ({
     if (compositions.full && compositions.full.sharedId) {
       setHookLoading(true);
       setHookError(null);
-      composeEntity(compositions.full.sharedId, {
-        includeTemplate: true,
-        includeMetadata: true,
-        includeRelationships: false,
-        includeFiles: false,
-        includeNavigation: false,
-        includeFields: ['date', 'daterange', 'multidate'],
-        dateFormat: 'YYYY-MM-DD',
-        includePropertyMetadata: true,
-      })
+      composeEntity(compositions.full.sharedId, dateFieldsOptions('YYYY-MM-DD'))
         .then(composedEntity => {
           setHookDateFields(composedEntity);
         })

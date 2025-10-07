@@ -2,6 +2,7 @@ import { LoaderFunction } from 'react-router';
 import * as entitiesApi from '../../api/entities/index';
 import { IncomingHttpHeaders } from 'http';
 import { CompositionServiceFactory } from 'app/V2/application';
+import { fullDetailOptions, dateFieldsOptions, selectFieldsOptions } from 'app/V2/application/optionsPresets';
 
 export const entityPreviewLoader =
   (headers?: IncomingHttpHeaders): LoaderFunction =>
@@ -14,49 +15,9 @@ export const entityPreviewLoader =
       const useCase = await CompositionServiceFactory.createCompositionService(entitiesApi);
 
       const [fullComposition, dateComposition, selectComposition] = await Promise.all([
-        useCase.composeEntity(
-          entityId,
-          {
-            includeTemplate: true,
-            includeMetadata: true,
-            includeRelationships: true,
-            includeFiles: true,
-            includeNavigation: true,
-            includePermissions: true,
-            dateFormat: 'YYYY-MM-DD', // Default date format
-            includePropertyMetadata: true, // Include property metadata
-          },
-          { headers: headers }
-        ),
-        useCase.composeEntity(
-          entityId,
-          {
-            includeTemplate: true,
-            includeMetadata: true,
-            includeRelationships: false,
-            includeFiles: false,
-            includeNavigation: false,
-            includePermissions: false,
-            includeFields: ['date', 'daterange', 'multidate'],
-            dateFormat: 'YYYY-MM-DD', // Default date format
-            includePropertyMetadata: true, // Include property metadata
-          },
-          { headers: headers }
-        ),
-        useCase.composeEntity(
-          entityId,
-          {
-            includeTemplate: true,
-            includeMetadata: true,
-            includeRelationships: true,
-            includeFiles: false,
-            includeNavigation: false,
-            includePermissions: false,
-            includeFields: ['select', 'multiselect', 'relationship'],
-            includePropertyMetadata: true, // Include property metadata
-          },
-          { headers: headers }
-        ),
+        useCase.composeEntity(entityId, fullDetailOptions(), { headers }),
+        useCase.composeEntity(entityId, dateFieldsOptions(), { headers }),
+        useCase.composeEntity(entityId, selectFieldsOptions(), { headers }),
       ]);
 
       return {

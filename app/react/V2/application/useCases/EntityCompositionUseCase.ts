@@ -144,37 +144,16 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     entityIds: string[],
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
-    return this.composeEntities(
-      entityIds,
-      {
-        includeTemplate: true,
-        includeMetadata: true,
-        includeRelationships: false,
-        includeFiles: false,
-        includeNavigation: false,
-        includePermissions: true,
-        onlyForCards: true,
-      },
-      context
-    );
+    const builder = this.fluentForEntities(entityIds).forCardView();
+    return builder.compose() as Promise<BatchCompositionResult>;
   }
 
   async composeEntitiesForDetailView(
     entityIds: string[],
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
-    return this.composeEntities(
-      entityIds,
-      {
-        includeTemplate: true,
-        includeMetadata: true,
-        includeRelationships: true,
-        includeFiles: true,
-        includeNavigation: true,
-        includePermissions: true,
-      },
-      context
-    );
+    const builder = this.fluentForEntities(entityIds).forDetailView();
+    return builder.compose() as Promise<BatchCompositionResult>;
   }
 
   // Fluent API methods

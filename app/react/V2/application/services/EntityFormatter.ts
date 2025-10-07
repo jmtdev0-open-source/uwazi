@@ -1,5 +1,4 @@
-import { Entity, EntityFactory } from 'app/V2/domain';
-import { CompositionOptions } from '../types';
+import { CompositionOptions, Entity, EntityFactory } from 'app/V2/domain';
 import { IncomingHttpHeaders } from 'http';
 import { atomStore, templatesAtom } from 'app/V2/atoms';
 import { MetadataFormatter } from './MetadataFormatter';
