@@ -50,46 +50,6 @@ export class EntityRepositoryImpl implements EntityRepository {
     }
   }
 
-  async findByTemplate(templateId: string, options?: CompositionOptions): Promise<any[]> {
-    try {
-      const response = await this.apiClient.get(`/api/entities/template/${templateId}`, {
-        params: this.buildQueryParams(options),
-      });
-
-      if (!response.data || !Array.isArray(response.data)) {
-        return [];
-      }
-
-      return response.data; // Return raw data directly
-    } catch (error) {
-      console.error('Error fetching entities by template:', error);
-      return [];
-    }
-  }
-
-  async findByRelationship(
-    entityId: string,
-    relationshipType: string,
-    options?: CompositionOptions
-  ): Promise<any[]> {
-    try {
-      const response = await this.apiClient.get(
-        `/api/entities/${entityId}/relationships/${relationshipType}`,
-        {
-          params: this.buildQueryParams(options),
-        }
-      );
-      if (!response.data || !Array.isArray(response.data)) {
-        return [];
-      }
-
-      return response.data; // Return raw data directly
-    } catch (error) {
-      console.error('Error fetching related entities:', error);
-      return [];
-    }
-  }
-
   async save(entity: any): Promise<any> {
     try {
       const response = await this.apiClient.put(`/api/entities/${entity.id}`, entity);
@@ -100,43 +60,11 @@ export class EntityRepositoryImpl implements EntityRepository {
     }
   }
 
-  async delete(entityId: string): Promise<boolean> {
-    try {
-      await this.apiClient.delete(`/api/entities/${entityId}`);
-      return true;
-    } catch (error) {
-      console.error('Error deleting entity:', error);
-      return false;
-    }
-  }
-
-  async exists(entityId: string): Promise<boolean> {
-    try {
-      const response = await this.apiClient.head(`/api/entities/${entityId}`);
-      return response.status === 200;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  async count(options?: CompositionOptions): Promise<number> {
-    try {
-      const response = await this.apiClient.get('/api/entities/count', {
-        params: this.buildQueryParams(options),
-      });
-      return response.data?.count || 0;
-    } catch (error) {
-      console.error('Error counting entities:', error);
-      return 0;
-    }
-  }
-
   private buildQueryParams(options?: CompositionOptions): Record<string, any> {
     if (!options) return {};
 
     return {
       includeTemplate: options.includeTemplate,
-      includeProperties: options.includeProperties,
       includeMetadata: options.includeMetadata,
       includeRelationships: options.includeRelationships,
       includeFiles: options.includeFiles,

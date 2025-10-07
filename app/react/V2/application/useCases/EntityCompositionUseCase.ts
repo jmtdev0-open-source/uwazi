@@ -5,14 +5,13 @@
 import { IncomingHttpHeaders } from 'http';
 import { EntityRepository } from '../../infrastructure/repositories/EntityRepository';
 import { MetadataFormatter } from '../services/MetadataFormatter';
-import { atomStore, templatesAtom } from 'V2/atoms';
 import {
   CompositionOptions,
   CompositionResult,
   BatchCompositionResult,
   CompositionError,
 } from '../../domain/entities/types';
-import { Entity, EntityFactory } from 'app/V2/domain';
+import { Entity } from 'app/V2/domain';
 import { EntityFormatter } from '../services/EntityFormatter';
 import { FluentCompositionBuilder } from '../FluentCompositionBuilder';
 
@@ -66,7 +65,11 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         };
       }
 
-      const composedEntity = await this.entityFormatter.composeEntityWithFormatting(entity, options, context);
+      const composedEntity = await this.entityFormatter.composeEntityWithFormatting(
+        entity,
+        options,
+        context
+      );
 
       return {
         entity: composedEntity,

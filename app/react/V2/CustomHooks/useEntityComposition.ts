@@ -16,11 +16,7 @@ export const EntityCompositionProvider: React.FC<{
   children: React.ReactNode;
   useCase: EntityCompositionUseCase;
 }> = ({ children, useCase }) => {
-  return React.createElement(
-    EntityCompositionContext.Provider,
-    { value: { useCase } },
-    children
-  );
+  return React.createElement(EntityCompositionContext.Provider, { value: { useCase } }, children);
 };
 
 // Hook to get the context

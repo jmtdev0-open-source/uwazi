@@ -3,6 +3,7 @@
  * Manages dependencies between layers
  */
 import { EntityRepository } from '../../infrastructure/repositories/EntityRepository';
+import { EntityFormatter, EntityFormatterImpl } from '../services/EntityFormatter';
 import { MetadataFormatter, MetadataFormatterImpl } from '../services/MetadataFormatter';
 import { EntityCompositionUseCase } from '../useCases/EntityCompositionUseCase';
 import { EntityCompositionUseCaseImpl } from '../useCases/EntityCompositionUseCase';
@@ -11,6 +12,7 @@ export class DependencyContainer {
   private static instance: DependencyContainer;
   private entityRepository: EntityRepository | null = null;
   private metadataFormatter: MetadataFormatter | null = null;
+  private entityFormatter: EntityFormatter | null = null;
   private entityCompositionUseCase: EntityCompositionUseCase | null = null;
 
   private constructor() {}
@@ -30,6 +32,10 @@ export class DependencyContainer {
     this.metadataFormatter = formatter;
   }
 
+  setEntityFormatter(formatter: EntityFormatter): void {
+    this.entityFormatter = formatter;
+  }
+
   getEntityRepository(): EntityRepository {
     if (!this.entityRepository) {
       throw new Error('EntityRepository not registered');
@@ -44,11 +50,19 @@ export class DependencyContainer {
     return this.metadataFormatter;
   }
 
+  getEntityFormatter(): EntityFormatter {
+    if (!this.entityFormatter) {
+      this.entityFormatter = new EntityFormatterImpl(this.getMetadataFormatter());
+    }
+    return this.entityFormatter;
+  }
+
   getEntityCompositionUseCase(): EntityCompositionUseCase {
     if (!this.entityCompositionUseCase) {
       this.entityCompositionUseCase = new EntityCompositionUseCaseImpl(
         this.getEntityRepository(),
-        this.getMetadataFormatter()
+        this.getMetadataFormatter(),
+        this.getEntityFormatter()
       );
     }
     return this.entityCompositionUseCase;
@@ -58,5 +72,6 @@ export class DependencyContainer {
     this.entityRepository = null;
     this.metadataFormatter = null;
     this.entityCompositionUseCase = null;
+    this.entityFormatter = null;
   }
 }

@@ -8,4 +8,4 @@ export type {
 
 export { EntityUtils, EntityFactory } from './entities/utils';
 
-export type { Entity } from './entities/Entity'; 
+export type { Entity } from './entities/Entity';

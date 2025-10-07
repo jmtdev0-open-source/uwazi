@@ -1,25 +1,25 @@
-import { Entity, EntityFactory } from "app/V2/domain";
-import { CompositionOptions } from "../types";
-import { IncomingHttpHeaders } from "http";
-import { atomStore, templatesAtom } from "app/V2/atoms";
-import { MetadataFormatter } from "./MetadataFormatter";
+import { Entity, EntityFactory } from 'app/V2/domain';
+import { CompositionOptions } from '../types';
+import { IncomingHttpHeaders } from 'http';
+import { atomStore, templatesAtom } from 'app/V2/atoms';
+import { MetadataFormatter } from './MetadataFormatter';
 
 export interface EntityFormatter {
-    composeEntityWithFormatting(
-        entity: any,
-        options: CompositionOptions,
-        _context: { userId?: string; userPermissions?: string[]; headers?: IncomingHttpHeaders }
-      ): Promise<Entity>;
+  composeEntityWithFormatting(
+    entity: any,
+    options: CompositionOptions,
+    _context: { userId?: string; userPermissions?: string[]; headers?: IncomingHttpHeaders }
+  ): Promise<Entity>;
 }
 
 export class EntityFormatterImpl implements EntityFormatter {
-    private readonly metadataFormatter: MetadataFormatter;
+  private readonly metadataFormatter: MetadataFormatter;
 
-    constructor(metadataFormatter: MetadataFormatter) {
-        this.metadataFormatter = metadataFormatter;
-    }
+  constructor(metadataFormatter: MetadataFormatter) {
+    this.metadataFormatter = metadataFormatter;
+  }
 
-    async composeEntityWithFormatting(
+  async composeEntityWithFormatting(
     entity: any,
     options: CompositionOptions,
     _context: { userId?: string; userPermissions?: string[]; headers?: IncomingHttpHeaders }
@@ -39,20 +39,6 @@ export class EntityFormatterImpl implements EntityFormatter {
         // Build the final formatted property
         const finalProperty: any = {
           ...formattedProperty,
-          // Use the displayValue from the formatter if available, otherwise fallback
-          displayValue:
-            formattedProperty.displayValue ||
-            (Array.isArray(formattedProperty.formattedValue)
-              ? formattedProperty.formattedValue.join(', ')
-              : formattedProperty.formattedValue) ||
-            formattedProperty.value ||
-            formattedProperty.label ||
-            formattedProperty.name ||
-            'Unknown',
-          // Preserve the original value for editing
-          originalValue: formattedProperty.originalValue || property.value,
-          // Preserve the formatted value for display
-          formattedValue: formattedProperty.formattedValue || formattedProperty.value,
         };
 
         // Include property metadata if requested
@@ -71,13 +57,11 @@ export class EntityFormatterImpl implements EntityFormatter {
       });
     }
 
-    // Compose template if requested
     let composedTemplate;
     if (options.includeTemplate && entity.template) {
       composedTemplate = await this.composeTemplate(entity.template);
     }
 
-    // Create composed entity using the domain class factory method
     const composedEntity = EntityFactory.fromRawEntity(entity, {
       includeTemplate: options.includeTemplate,
       includePermissions: options.includePermissions,
@@ -85,15 +69,12 @@ export class EntityFormatterImpl implements EntityFormatter {
       includeRelationships: options.includeRelationships,
       includeFiles: options.includeFiles,
       includeNavigation: options.includeNavigation,
-      // Pass the filtered metadata to the factory method
       filteredMetadata: formattedMetadata,
-      // Pass the composed template
       composedTemplate: composedTemplate,
     });
 
     return composedEntity;
   }
-
 
   private getFieldsToProcess(
     metadata: Record<string, any>,
@@ -153,7 +134,6 @@ export class EntityFormatterImpl implements EntityFormatter {
       icon: property.icon,
     };
 
-    // Add inheritance details if inherited
     if (metadata.isInherited) {
       metadata.inheritanceDetails = {
         inheritedType: property.inheritedType,
@@ -162,7 +142,6 @@ export class EntityFormatterImpl implements EntityFormatter {
         inheritedFrom: property.inheritedFrom || 'Unknown',
       };
 
-      // For relationship properties, add detailed inherited property metadata
       if (metadata.propertyType === 'relationship' && property.options) {
         metadata.inheritedPropertyMetadata = property.options
           .filter((opt: any) => opt.inheritedValue && opt.inheritedValue.length > 0)
@@ -189,7 +168,6 @@ export class EntityFormatterImpl implements EntityFormatter {
       };
     }
 
-    // Add file details if it's a file property
     if (metadata.propertyType === 'image' || metadata.propertyType === 'media') {
       metadata.fileDetails = {
         fileName: property.fileName,
@@ -204,7 +182,6 @@ export class EntityFormatterImpl implements EntityFormatter {
   }
 
   private isInheritedProperty(property: any): boolean {
-    // Check direct inheritance flags
     if (
       property.inherited ||
       property.inheritedType ||
@@ -214,7 +191,6 @@ export class EntityFormatterImpl implements EntityFormatter {
       return true;
     }
 
-    // Check if any options have inherited values (for relationship properties)
     if (property.options && Array.isArray(property.options)) {
       return property.options.some(
         (opt: any) => opt.inheritedValue && opt.inheritedValue.length > 0
@@ -226,25 +202,22 @@ export class EntityFormatterImpl implements EntityFormatter {
 
   private async composeTemplate(templateId: string): Promise<any> {
     try {
-      // Get templates from atom store
       const templates = atomStore.get(templatesAtom);
-
-      // Find the template by ID
       const template = templates.find((t: any) => t._id === templateId);
 
       return {
         id: templateId,
-        name: template?.name || templateId, // Use actual template name from atom store
+        name: template?.name || templateId,
+        color: template?.color || '#000000',
         properties: [],
       };
     } catch (error) {
-      console.warn(`Failed to compose template ${templateId}:`, error);
       return {
         id: templateId,
-        name: templateId, // Fallback to ID if composition fails
+        name: templateId,
+        color: '#000000',
         properties: [],
       };
     }
   }
-
 }

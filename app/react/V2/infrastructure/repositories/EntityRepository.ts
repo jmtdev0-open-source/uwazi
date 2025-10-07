@@ -13,13 +13,5 @@ export interface EntityRepository {
     headers?: IncomingHttpHeaders
   ): Promise<EntityDTO | null>;
   findByIds(entityIds: string[], options?: CompositionOptions): Promise<EntityDTO[]>;
-  findByRelationship(
-    entityId: string,
-    relationshipType: string,
-    options?: CompositionOptions
-  ): Promise<EntityDTO[]>;
   save(entity: EntityDTO): Promise<EntityDTO>;
-  delete(entityId: string): Promise<boolean>;
-  exists(entityId: string): Promise<boolean>;
-  count(options?: CompositionOptions): Promise<number>;
 }
