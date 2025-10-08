@@ -12,6 +12,63 @@ export interface CompositionContext {
   readonly includePermissions: boolean;
 }
 
+// Type-specific options for different property types
+export interface DateCompositionOptions {
+  dateFormat?: string; // Custom date format (e.g., 'YYYY-MM-DD', 'DD/MM/YYYY')
+  timezone?: string; // Timezone for date formatting
+  includeTime?: boolean; // Include time in date formatting
+  relativeTime?: boolean; // Show relative time (e.g., "2 days ago")
+  locale?: string; // Locale for date formatting
+}
+
+export interface SelectCompositionOptions {
+  includeOptions?: boolean; // Include all available options
+  showLabels?: boolean; // Show option labels
+  showIcons?: boolean; // Show option icons
+  showUrls?: boolean; // Show option URLs
+  translateLabels?: boolean; // Translate option labels
+}
+
+export interface RelationshipCompositionOptions {
+  nestedLevel?: number; // How deep to nest relationships
+  includeEntityData?: boolean; // Include full entity data
+  includeTemplates?: boolean; // Include template information
+  maxRelationships?: number; // Maximum number of relationships to include
+}
+
+export interface GeolocationCompositionOptions {
+  combineGeolocation?: boolean; // Combine multiple geolocation points
+  includeMapData?: boolean; // Include map visualization data
+  precision?: number; // Decimal precision for coordinates
+  format?: 'decimal' | 'dms'; // Coordinate format (decimal degrees or degrees/minutes/seconds)
+}
+
+export interface FileCompositionOptions {
+  includeFileMetadata?: boolean; // Include file size, type, etc.
+  includeThumbnails?: boolean; // Include thumbnail URLs
+  maxFileSize?: number; // Maximum file size to include
+  allowedTypes?: string[]; // Allowed file types
+}
+
+export interface MarkdownCompositionOptions {
+  stripHtml?: boolean; // Strip HTML tags
+  maxLength?: number; // Maximum text length
+  includeHtml?: boolean; // Include HTML version
+  includeText?: boolean; // Include plain text version
+}
+
+export interface NestedCompositionOptions {
+  maxDepth?: number; // Maximum nesting depth
+  includeChildren?: boolean; // Include child properties
+  flatten?: boolean; // Flatten nested structure
+}
+
+export interface InheritCompositionOptions {
+  showInheritance?: boolean; // Show inheritance information
+  includeOriginalValue?: boolean; // Include original value before inheritance
+  showInheritedFrom?: boolean; // Show what property was inherited from
+}
+
 export interface CompositionOptions {
   includeTemplate?: boolean;
   includeMetadata?: boolean;
@@ -30,6 +87,22 @@ export interface CompositionOptions {
   includePropertyMetadata?: boolean; // Include property type, inheritance info, and other metadata
   // Field selection options
   includeFields?: string[]; // Field names to include (overrides other options)
+  editionMode?: boolean; // Edition mode
+  combineGeolocation?: boolean; // Combine geolocation points
+  relationshipNestedLevel?: number; // Relationship nested level
+  formatTimeLinks?: boolean; // Format time links
+  translateLabels?: boolean; // Translate labels
+  includeRawMetadata?: boolean; // Include raw values
+  
+  // Type-specific options (nested for flexibility)
+  dateOptions?: DateCompositionOptions;
+  selectOptions?: SelectCompositionOptions;
+  relationshipOptions?: RelationshipCompositionOptions;
+  geolocationOptions?: GeolocationCompositionOptions;
+  fileOptions?: FileCompositionOptions;
+  markdownOptions?: MarkdownCompositionOptions;
+  nestedOptions?: NestedCompositionOptions;
+  inheritOptions?: InheritCompositionOptions;
 }
 
 export interface CompositionResult {
