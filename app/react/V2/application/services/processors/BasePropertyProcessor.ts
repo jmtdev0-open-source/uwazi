@@ -17,7 +17,7 @@ export abstract class BasePropertyProcessor implements PropertyTypeProcessor {
   ): Promise<Map<string, FormattedProperty>> {
     const results = new Map<string, FormattedProperty>();
 
-    for (const property of properties) {
+    properties.forEach(property => {
       try {
         const key = `${property._entityId}:${property.name}`;
         const values = this.formatProperty(property, context);
@@ -25,7 +25,7 @@ export abstract class BasePropertyProcessor implements PropertyTypeProcessor {
       } catch (error) {
         console.error(`Error processing ${this.name} property ${property.name}:`, error);
       }
-    }
+    });
 
     return results;
   }
@@ -47,20 +47,20 @@ export abstract class BasePropertyProcessor implements PropertyTypeProcessor {
     ];
   }
 
-  protected shouldSkipFormatting(context: ProcessingContext, formatKey?: string): boolean {
+  protected shouldSkipFormatting(_context: ProcessingContext, _formatKey?: string): boolean {
     return false;
   }
 
   protected getCustomFormat(
-    context: ProcessingContext,
-    formatKey: string,
+    _context: ProcessingContext,
+    _formatKey: string,
     defaultFormat: string
   ): string {
     return defaultFormat;
   }
 
-  protected getPropertyLabel(property: any, fieldName: string): string {
-    return property.label || property.name || fieldName;
+  protected getPropertyLabel(property: any, _fieldName: string): string {
+    return property.label || property.name || _fieldName;
   }
 
   protected getTranslatedLabel(
@@ -82,8 +82,8 @@ export abstract class BasePropertyProcessor implements PropertyTypeProcessor {
 
   protected buildPropertyMetadata(
     property: any,
-    fieldName: string,
-    context: ProcessingContext
+    _fieldName: string,
+    _context: ProcessingContext
   ): PropertyMetadata {
     return {
       showInCard: property.showInCard || false,

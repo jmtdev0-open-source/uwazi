@@ -12,7 +12,7 @@ export class DefaultPropertyProcessor extends BasePropertyProcessor {
   /**
    * Default implementation - returns raw values for any property type
    */
-  protected formatProperty(property: any, context: any): any[] {
+  protected formatProperty(property: any, _context: any): any[] {
     return this.createRawValues(property);
   }
 }

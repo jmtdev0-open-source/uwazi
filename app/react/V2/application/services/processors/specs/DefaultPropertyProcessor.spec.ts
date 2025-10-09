@@ -236,7 +236,7 @@ describe('DefaultPropertyProcessor', () => {
 
         it('should use default raw value creation', () => {
             const property = { value: 'testValue' };
-            const rawValues = processor.createRawValues(property);
+            const rawValues = (processor as any).createRawValues(property);
 
             expect(rawValues).toHaveLength(1);
             expect(rawValues[0].value).toBe('testValue');
@@ -253,16 +253,16 @@ describe('DefaultPropertyProcessor', () => {
 
         it('should have access to base class utility methods', () => {
             const property = { label: 'Test Label', name: 'testName' };
-            const label = processor.getPropertyLabel(property, 'fieldName');
+            const label = (processor as any).getPropertyLabel(property, 'fieldName');
 
             expect(label).toBe('Test Label');
         });
 
         it('should use default implementations from base class', () => {
-            const shouldSkip = processor.shouldSkipFormatting(mockContext, 'test');
+            const shouldSkip = (processor as any).shouldSkipFormatting(mockContext, 'test');
             expect(shouldSkip).toBe(false);
 
-            const customFormat = processor.getCustomFormat(mockContext, 'test', 'defaultFormat');
+            const customFormat = (processor as any).getCustomFormat(mockContext, 'test', 'defaultFormat');
             expect(customFormat).toBe('defaultFormat');
         });
     });

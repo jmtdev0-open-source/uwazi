@@ -18,7 +18,7 @@ export class AdapterSelectProcessor implements PropertyTypeProcessor {
 
     const { selectFormatting, translations } = context;
 
-    for (const property of properties) {
+    properties.forEach(property => {
       try {
         const key = `${property._entityId}:${property._fieldName}`;
         const values = this.formatSelectProperty(property, selectFormatting, translations);
@@ -27,7 +27,7 @@ export class AdapterSelectProcessor implements PropertyTypeProcessor {
       } catch (error) {
         console.error(`Error processing select property ${property._fieldName}:`, error);
       }
-    }
+    });
 
     return results;
   }
@@ -37,10 +37,9 @@ export class AdapterSelectProcessor implements PropertyTypeProcessor {
     selectFormatting: any,
     translations: Record<string, any>
   ): PropertyValue[] {
-    const { showLabels, showIcons, showUrls, includeOptions } = selectFormatting;
+    const { showLabels, showIcons, showUrls } = selectFormatting;
 
     if (property.value !== undefined && !property.options) {
-      // Simple value without options
       const values = Array.isArray(property.value) ? property.value : [property.value];
 
       return values.map((value: any): PropertyValue => {

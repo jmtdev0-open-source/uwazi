@@ -172,7 +172,6 @@ export class AdapterDateProcessor extends BasePropertyProcessor {
   }
 
   private formatDateRange(property: any, dateFormatting: any): PropertyValue[] {
-    const { format, timezone, includeTime, relativeTime, locale } = dateFormatting;
     const ranges = Array.isArray(property.value) ? property.value : [property.value];
 
     return ranges.map((propertyValue: PropertyValue) => {
