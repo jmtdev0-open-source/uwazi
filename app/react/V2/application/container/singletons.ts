@@ -5,20 +5,19 @@ let _entityCompositionUseCase: any = null;
 let _initializationPromise: Promise<any> | null = null;
 
 export const getEntityCompositionUseCase = async (): Promise<any> => {
-    if (_entityCompositionUseCase) {
-        return _entityCompositionUseCase;
-    }
-
-    if (_initializationPromise) {
-        return await _initializationPromise;
-    }
-
-    _initializationPromise = CompositionServiceFactory.createCompositionService(entitiesApi);
-    _entityCompositionUseCase = await _initializationPromise;
+  if (_entityCompositionUseCase) {
     return _entityCompositionUseCase;
+  }
+
+  if (_initializationPromise) {
+    return _initializationPromise;
+  }
+
+  _initializationPromise = CompositionServiceFactory.createCompositionService(entitiesApi);
+  return _initializationPromise;
 };
 
 export const resetEntityCompositionUseCase = (): void => {
-    _entityCompositionUseCase = null;
-    _initializationPromise = null;
+  _entityCompositionUseCase = null;
+  _initializationPromise = null;
 };

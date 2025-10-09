@@ -21,7 +21,7 @@ export const EntityFactory = {
       relationships: options.includeRelationships ? rawEntity.relationships : undefined,
       files: options.includeFiles ? rawEntity.files : undefined,
       navigation: options.includeNavigation ? rawEntity.navigation : undefined,
-      rawData: rawEntity,
+      rawEntity: rawEntity,
     };
   },
 };

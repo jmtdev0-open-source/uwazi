@@ -1,7 +1,6 @@
 import { flatMap, groupBy, map, sortBy, uniq } from 'lodash';
 import { Entity } from 'app/V2/domain';
 import { ComposedTemplate } from 'app/V2/domain/entities/types';
-import { ensure } from 'shared/tsUtils';
 import {
   FormattedProperty,
   ProcessingContext,
@@ -126,34 +125,24 @@ export class EntityAdapterProcessor {
     };
   }
 
-  // Template processing moved to AdapterTemplateProcessor
-  private formatTemplateData(templatesIds: string[]): ComposedTemplate[] {
-    return this.templateProcessor.formatTemplateData(templatesIds);
-  }
-
   private async processPropertiesByType(
     propertiesByType: Map<string, any[]>
   ): Promise<Map<string, FormattedProperty>> {
     const allResults = new Map<string, FormattedProperty>();
     const processorsUsed: string[] = [];
 
-    for (const [propertyType, properties] of propertiesByType) {
-      const processor = this.processors.get(propertyType) || this.processors.get('any');
-
-      if (processor && properties.length > 0) {
-        try {
+    await Promise.all(
+      Array.from(propertiesByType.entries()).map(async ([propertyType, properties]) => {
+        const processor = this.processors.get(propertyType) || this.processors.get('any');
+        if (processor && properties.length > 0) {
           const results = await processor.processBatch(properties, this.context);
-
           results.forEach((property, key) => {
             allResults.set(key, property);
           });
-
           processorsUsed.push(processor.name);
-        } catch (error) {
-          console.error(`Error processing ${propertyType} properties:`, error);
         }
-      }
-    }
+      })
+    );
 
     return allResults;
   }

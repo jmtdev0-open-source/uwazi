@@ -27,12 +27,12 @@ export class AdapterTemplateProcessor {
         return {
           _id: template._id,
           name: template.name,
-          label: template.label,
+          label: String(template.label),
           ...(templateTranslations !== undefined
             ? { translatedLabel: templateTranslations.values[template.name] }
             : {}),
-          color: template.color,
-          entityViewPage: template.entityViewPage,
+          color: template.color || '#000000',
+          entityViewPage: template.entityViewPage || '',
           commonProperties: formattedCommonProperties,
           properties: formattedProperties,
         };
@@ -122,8 +122,8 @@ export class AdapterTemplateProcessor {
       type: property.type,
       ...(templateTranslations !== undefined
         ? {
-            translatedLabel: templateTranslations.values[property.label] || property.label,
-          }
+          translatedLabel: templateTranslations.values[property.label] || property.label,
+        }
         : {}),
     };
   }

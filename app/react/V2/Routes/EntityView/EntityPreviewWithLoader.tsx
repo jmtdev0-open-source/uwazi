@@ -249,7 +249,7 @@ const EntityPreviewWithLoader = () => {
 
   useEffect(() => {
     let mounted = true;
-    void (async () => {
+    const initializeService = async () => {
       try {
         const uc = await CompositionServiceFactory.createCompositionService(entitiesApi);
         if (!mounted) return;
@@ -259,7 +259,9 @@ const EntityPreviewWithLoader = () => {
         // eslint-disable-next-line no-console
         console.error('Failed to init EntityCompositionProvider', e);
       }
-    })();
+    };
+
+    initializeService().catch(console.error);
     return () => {
       mounted = false;
     };

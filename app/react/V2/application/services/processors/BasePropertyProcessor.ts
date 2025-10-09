@@ -33,7 +33,7 @@ export abstract class BasePropertyProcessor implements PropertyTypeProcessor {
   /**
    * Format property values (to be overridden by subclasses)
    */
-  protected formatProperty(property: any, context: ProcessingContext): PropertyValue[] {
+  protected formatProperty(property: any, _context: ProcessingContext): PropertyValue[] {
     return this.createRawValues(property);
   }
 

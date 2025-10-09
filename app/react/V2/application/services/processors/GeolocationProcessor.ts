@@ -1,7 +1,3 @@
-/**
- * Geolocation Property Processor
- * Specialized processor for handling geolocation properties with standardized structure
- */
 import { BasePropertyProcessor } from './BasePropertyProcessor';
 import { PropertyValue, ProcessingContext } from './types';
 
@@ -18,9 +14,6 @@ export class GeolocationProcessor extends BasePropertyProcessor {
     return this.formatGeolocationProperty(property, context);
   }
 
-  /**
-   * Create raw values for geolocation properties
-   */
   protected createRawValues(property: any): PropertyValue[] {
     const values = Array.isArray(property.value) ? property.value : [property.value];
     return values.map((geo: any) => {
@@ -32,12 +25,10 @@ export class GeolocationProcessor extends BasePropertyProcessor {
         };
       }
 
-      // Handle different input structures
       let lat: number;
       let lon: number;
 
       if (geo.value && (geo.value.latitude !== undefined || geo.value.longitude !== undefined)) {
-        // Handle case where geo has a value property with coordinates
         lat = geo.value.latitude || geo.value.lat;
         lon = geo.value.longitude || geo.value.lon;
       } else if (geo.latitude !== undefined || geo.longitude !== undefined) {
@@ -62,9 +53,6 @@ export class GeolocationProcessor extends BasePropertyProcessor {
     });
   }
 
-  /**
-   * Check if geolocation formatting should be skipped
-   */
   protected shouldSkipFormatting(context: ProcessingContext, formatKey?: string): boolean {
     if (formatKey === 'geolocation') {
       return context.options.geolocationOptions?.includeMapData === false;
@@ -85,16 +73,13 @@ export class GeolocationProcessor extends BasePropertyProcessor {
         };
       }
 
-      // Handle different input structures
       let lat: number;
       let lon: number;
 
       if (geo.value && (geo.value.latitude !== undefined || geo.value.longitude !== undefined)) {
-        // Handle case where geo has a value property with coordinates
         lat = geo.value.latitude || geo.value.lat;
         lon = geo.value.longitude || geo.value.lon;
       } else if (geo.latitude !== undefined || geo.longitude !== undefined) {
-        // Handle case where geo is the coordinate object directly
         lat = geo.latitude || geo.lat;
         lon = geo.longitude || geo.lon;
       } else {
@@ -119,7 +104,6 @@ export class GeolocationProcessor extends BasePropertyProcessor {
       let formattedValue: any;
 
       if (geolocationFormatting.format === 'dms') {
-        // Convert to degrees, minutes, seconds format
         const latDMS = this.toDMS(lat, 'lat');
         const lonDMS = this.toDMS(lon, 'lon');
         label = `${latDMS}, ${lonDMS}`;
@@ -133,7 +117,6 @@ export class GeolocationProcessor extends BasePropertyProcessor {
             : undefined,
         };
       } else {
-        // Decimal format
         const latFormatted = Number(lat).toFixed(geolocationFormatting.precision);
         const lonFormatted = Number(lon).toFixed(geolocationFormatting.precision);
         label = `${latFormatted}°N, ${lonFormatted}°E`;
@@ -154,7 +137,6 @@ export class GeolocationProcessor extends BasePropertyProcessor {
       };
     });
 
-    // Combine geolocations if requested
     const finalValues =
       geolocationFormatting.combineGeolocation && formattedValues.length > 1
         ? [
@@ -177,7 +159,13 @@ export class GeolocationProcessor extends BasePropertyProcessor {
     const minutes = Math.floor(minutesFloat);
     const seconds = (minutesFloat - minutes) * 60;
 
-    const direction = type === 'lat' ? (decimal >= 0 ? 'N' : 'S') : decimal >= 0 ? 'E' : 'W';
+    // avoid ternary operator
+    let direction = '';
+    if (type === 'lat') {
+      direction = decimal >= 0 ? 'N' : 'S';
+    } else {
+      direction = decimal >= 0 ? 'E' : 'W';
+    }
 
     return `${degrees}°${minutes}'${seconds.toFixed(2)}"${direction}`;
   }

@@ -1,17 +1,7 @@
 import { FileProcessor } from '../FileProcessor';
 import { ProcessingContext } from '../types';
-import entity from '../../Sample';
-import {
-  processingContext,
-  testImageProperty,
-  testMediaProperty,
-  testLargeFileProperty,
-  testInvalidFileProperty,
-  contextWithSmallLimit,
-  contextWithRestrictedTypes,
-  contextWithSkipFormatting,
-  findInheritedRelationshipProperty,
-} from './fixtures';
+import { entity } from '../../Sample';
+import { findInheritedRelationshipProperty } from './fixtures';
 
 describe('FileProcessor', () => {
   let processor: FileProcessor;

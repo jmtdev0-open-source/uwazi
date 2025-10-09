@@ -1,4 +1,4 @@
-const entity = {
+export const entity = {
   _id: '1',
   title: 'Simple title',
   sharedId: 'entity1',
@@ -323,11 +323,8 @@ const entity = {
           label: 'Document EN',
           color: '#16bdca',
           entityViewPage: '',
+          totalRelationships: 2,
         },
-      },
-      propertyMedatada: {
-        showInCard: true,
-        totalRelationships: 2,
       },
     },
     {
@@ -556,7 +553,7 @@ const entity = {
       geolocation_cluster: {
         values: [
           {
-            value: { latitude: 40.7128, longitude: -74.0060 },
+            value: { latitude: 40.7128, longitude: -74.006 },
             displayValue: '40.7128°N, 74.0060°W',
             properties: {
               template: 'New York',
@@ -566,11 +563,11 @@ const entity = {
             },
             coordinateData: {
               lat: 40.7128,
-              lng: -74.0060,
+              lng: -74.006,
               latDMS: '40°42\'46.08"N',
               lngDMS: '74°00\'21.60"W',
               decimalLat: 40.7128,
-              decimalLng: -74.0060,
+              decimalLng: -74.006,
               hemisphere: { lat: 'N', lng: 'W' },
               precision: 6,
               accuracy: 'high',
@@ -611,7 +608,7 @@ const entity = {
   ],
 };
 
-const rawEntity = {
+export const rawEntity = {
   _id: '68dded72c9474e23bb5e9254',
   language: 'en',
   mongoLanguage: 'en',
@@ -919,7 +916,7 @@ const rawEntity = {
   __v: 4,
 };
 
-const template = {
+export const template = {
   _id: '5bfbb1a0471dd0fc16ada146',
   name: 'Document',
   commonProperties: [
@@ -1013,7 +1010,7 @@ const template = {
   entityViewPage: '',
 };
 
-const relationshipTypes = [
+export const relationshipTypes = [
   {
     _id: '68da99d961bceda4fe0d6e0f',
     name: 'related to',
@@ -1027,4 +1024,3 @@ const relationshipTypes = [
     __v: 1,
   },
 ];
-export default entity;

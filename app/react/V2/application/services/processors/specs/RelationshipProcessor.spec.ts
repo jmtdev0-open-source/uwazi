@@ -6,7 +6,7 @@ import {
   findInheritedRelationshipProperty,
   findRelationshipProperties,
 } from './fixtures';
-import entity from '../../Sample';
+import { entity } from '../../Sample';
 
 describe('RelationshipProcessor', () => {
   let processor: RelationshipProcessor;
@@ -471,17 +471,19 @@ describe('RelationshipProcessor', () => {
 
       expect(relationshipProperties.length).toBeGreaterThan(0);
 
-      for (const property of relationshipProperties) {
-        const properties = [
-          {
-            _entityId: 'entity1',
-            ...property,
-          },
-        ];
+      await Promise.all(
+        relationshipProperties.map(async (property: any) => {
+          const properties = [
+            {
+              _entityId: 'entity1',
+              ...property,
+            },
+          ];
 
-        const result = await processor.processBatch(properties, mockContext);
-        expect(result.size).toBeGreaterThan(0);
-      }
+          const result = await processor.processBatch(properties, mockContext);
+          expect(result.size).toBeGreaterThan(0);
+        })
+      );
     });
 
     it('should handle relationship property metadata with entity metadata', async () => {

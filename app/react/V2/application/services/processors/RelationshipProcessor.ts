@@ -1,9 +1,5 @@
-/**
- * Relationship Property Processor
- * Specialized processor for handling relationship properties with standardized structure
- */
 import { BasePropertyProcessor } from './BasePropertyProcessor';
-import { FormattedProperty, PropertyValue, ProcessingContext } from './types';
+import { PropertyValue, ProcessingContext } from './types';
 
 export class RelationshipProcessor extends BasePropertyProcessor {
   readonly name = 'RelationshipProcessor';
@@ -18,9 +14,6 @@ export class RelationshipProcessor extends BasePropertyProcessor {
     return this.formatRelationshipProperty(property, context);
   }
 
-  /**
-   * Create raw values for relationship properties
-   */
   protected createRawValues(property: any): PropertyValue[] {
     const values = Array.isArray(property.value) ? property.value : [property.value];
 
@@ -41,9 +34,6 @@ export class RelationshipProcessor extends BasePropertyProcessor {
     });
   }
 
-  /**
-   * Check if relationship formatting should be skipped
-   */
   protected shouldSkipFormatting(context: ProcessingContext, formatKey?: string): boolean {
     if (formatKey === 'relationship') {
       return context.options.relationshipOptions?.includeEntityData === false;
@@ -51,16 +41,12 @@ export class RelationshipProcessor extends BasePropertyProcessor {
     return false;
   }
 
-  /**
-   * Get custom relationship format from options
-   */
   protected getCustomFormat(
-    context: ProcessingContext,
+    _context: ProcessingContext,
     formatKey: string,
     defaultFormat: string
   ): string {
     if (formatKey === 'relationship') {
-      // Relationship doesn't have a custom format option, return default
       return defaultFormat;
     }
     return defaultFormat;
@@ -71,11 +57,9 @@ export class RelationshipProcessor extends BasePropertyProcessor {
     const { nestedLevel, includeEntityData, includeTemplates, maxRelationships } =
       relationshipFormatting;
 
-    // Handle relationship values array
     const values = Array.isArray(property.value) ? property.value : [property.value];
     const isInherited = property.inherited === true;
 
-    // Apply max relationships limit if specified
     const limitedValues = maxRelationships ? values.slice(0, maxRelationships) : values;
 
     return limitedValues.map((rel: any): PropertyValue => {
@@ -85,16 +69,13 @@ export class RelationshipProcessor extends BasePropertyProcessor {
         displayValue: rel.displayValue || rel.label || rel.toString(),
       };
 
-      // Add relationship-specific data based on options
       const relationshipValue: PropertyValue = { ...baseValue };
 
-      // Add icon and url for non-inherited relationships
       if (!isInherited) {
         relationshipValue.icon = rel.icon || '';
         relationshipValue.url = rel.url || '';
       }
 
-      // Add relationship data if requested
       if (includeEntityData && rel.relationshipData) {
         relationshipValue.relationshipData = {
           entityId: rel.relationshipData.entityId,
@@ -104,7 +85,6 @@ export class RelationshipProcessor extends BasePropertyProcessor {
         };
       }
 
-      // Add nested level information
       if (nestedLevel > 1) {
         relationshipValue.nestedLevel = nestedLevel;
       }

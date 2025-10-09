@@ -1,7 +1,7 @@
+import { entity } from '../../Sample';
 import { GeolocationProcessor } from '../GeolocationProcessor';
 import { ProcessingContext } from '../types';
-import entity from '../../Sample';
-import { processingContext, findGeolocationProperty, findGeolocationProperties } from './fixtures';
+import { findGeolocationProperty } from './fixtures';
 
 describe('GeolocationProcessor', () => {
   let processor: GeolocationProcessor;
@@ -409,9 +409,7 @@ describe('GeolocationProcessor', () => {
 
         const result = (processor as any).formatProperty(propertyForProcessor, mockContext);
 
-        // The coordinateData may be in the original property data, not the processed result
         expect(result[0].value).toBeDefined();
-        // Check if coordinateData exists in the original property
         const firstValue = geolocationProperty.values[0] as any;
         if (firstValue.coordinateData) {
           expect(firstValue.coordinateData).toMatchObject({
