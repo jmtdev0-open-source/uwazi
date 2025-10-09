@@ -1,15 +1,15 @@
 import moment from 'moment';
-import { FormattedProperty, PropertyValue, PropertyTypeProcessor } from './types';
+import { FormattedProperty, PropertyValue, PropertyTypeProcessor, ProcessingContext } from './types';
 
 export class AdapterDateProcessor implements PropertyTypeProcessor {
   readonly name = 'AdapterDateProcessor';
   readonly priority = 10;
   readonly propertyTypes = ['date', 'multidate', 'daterange', 'multidaterange'];
 
-  async processBatch(properties: any[], sharedData: any): Promise<Map<string, FormattedProperty>> {
+  async processBatch(properties: any[], context: ProcessingContext): Promise<Map<string, FormattedProperty>> {
     const results = new Map<string, FormattedProperty>();
 
-    const { dateFormatting } = sharedData;
+    const { dateFormatting } = context;
 
     for (const property of properties) {
       try {

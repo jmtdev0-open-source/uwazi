@@ -144,9 +144,11 @@ export interface ComposedTemplate {
   readonly color: string;
   readonly properties: Map<string, ComposedProperty>;
   readonly commonProperties: Map<string, ComposedProperty>;
+  readonly entityViewPage: string;
 }
 
 export interface ComposedProperty {
+  readonly index: number;
   readonly id: string;
   readonly name: string;
   readonly label: string;

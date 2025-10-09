@@ -7,18 +7,16 @@ import { PropertySchema } from 'shared/types/commonTypes';
 import { ensure } from 'shared/tsUtils';
 import {
   FormattedProperty,
-  AdapterProcessingContext,
+  ProcessingContext,
   ProcessingError,
-  ComposerSharedData,
   PropertyTypeProcessor,
 } from './types';
 
 export class EntityAdapterProcessor {
-  private readonly context: AdapterProcessingContext;
+  private readonly context: ProcessingContext;
   private readonly processors: Map<string, PropertyTypeProcessor> = new Map();
-  private sharedData: ComposerSharedData | null = null;
 
-  constructor(context: AdapterProcessingContext) {
+  constructor(context: ProcessingContext) {
     this.context = context;
   }
 
@@ -32,62 +30,6 @@ export class EntityAdapterProcessor {
     });
   }
 
-  private prepareAllSharedData() {
-    const { options, language, translations, settings, templates } = this.context;
-
-    this.sharedData = {
-      dateFormatting: {
-        format:
-          options.dateOptions?.dateFormat ||
-          options.dateFormat ||
-          settings?.dateFormat ||
-          'YYYY-MM-DD',
-        timezone: options.dateOptions?.timezone,
-        includeTime: options.dateOptions?.includeTime || false,
-        relativeTime: options.dateOptions?.relativeTime || false,
-        locale: options.dateOptions?.locale || language,
-      },
-
-      // Select formatting utilities
-      selectFormatting: {
-        showLabels: options.selectOptions?.showLabels !== false,
-        showIcons: options.selectOptions?.showIcons || false,
-        showUrls: options.selectOptions?.showUrls || false,
-        includeOptions: options.selectOptions?.includeOptions || false,
-      },
-
-      // Relationship formatting utilities
-      relationshipFormatting: {
-        nestedLevel: options.relationshipOptions?.nestedLevel || 1,
-        includeEntityData: options.relationshipOptions?.includeEntityData || false,
-        includeTemplates: options.relationshipOptions?.includeTemplates || false,
-        maxRelationships: options.relationshipOptions?.maxRelationships,
-      },
-
-      // File formatting utilities
-      fileFormatting: {
-        includeFileMetadata: options.fileOptions?.includeFileMetadata || false,
-        includeThumbnails: options.fileOptions?.includeThumbnails || false,
-        maxFileSize: options.fileOptions?.maxFileSize,
-        allowedTypes: options.fileOptions?.allowedTypes,
-      },
-
-      // Geolocation formatting utilities
-      geolocationFormatting: {
-        precision: options.geolocationOptions?.precision || 4,
-        format: options.geolocationOptions?.format || 'decimal',
-        includeMapData: options.geolocationOptions?.includeMapData || false,
-        combineGeolocation: options.geolocationOptions?.combineGeolocation || false,
-      },
-
-      // Shared data
-      translations,
-      settings,
-      templates,
-      language,
-      options,
-    };
-  }
 
   private collectPropertiesByType(entities: Partial<Entity>[]): Map<string, any[]> {
     const propertiesByType = new Map<string, any[]>();
@@ -133,8 +75,6 @@ export class EntityAdapterProcessor {
 
     let propertiesByType: Map<string, any[]> | null = new Map();
     try {
-      this.prepareAllSharedData();
-      ensure(this.sharedData, 'Shared data not prepared');
       const templatesIds = uniq(entities.map(entity => entity.template));
 
       const templatesData = this.formatTemplateData(templatesIds);
@@ -168,10 +108,16 @@ export class EntityAdapterProcessor {
 
     const composedEntities = formattedEntities.map(({ rawEntity, ...restEntity }) => {
       const { template, ...entity } = restEntity;
-      const { properties, commonProperties, ...restTemplate } = template;
+      if (template) {
+        const { properties, commonProperties, ...restTemplate } = template;
+        return {
+          ...entity,
+          template: restTemplate,
+        };
+      }
       return {
         ...entity,
-        template: restTemplate,
+        template: null,
       };
     });
     return {
@@ -181,29 +127,29 @@ export class EntityAdapterProcessor {
   }
 
   formatTemplateData(templatesIds: string[]): ComposedTemplate[] {
-    const sharedData = this.sharedData!;
-    return sharedData.templates
+    return this.context.templates
       .filter((template: Template) => templatesIds.includes(template._id))
       .map((template: Template) => {
-        const templateTranslations = sharedData.options.translateFields
-          ? sharedData.translations
-              .find(t => t.locale === sharedData.language)
-              ?.contexts.find(t => t._id === template._id)
+        const templateTranslations = this.context.options.translateLabels && this.context.translations
+          ? this.context.translations
+            .find(t => t.locale === this.context.language)
+            ?.contexts.find(t => t._id === template._id)
           : undefined;
 
-        const commonProperties = sharedData.options.includeFields
+        const commonProperties = this.context.options.includeFields
           ? template.commonProperties?.filter(property =>
-              sharedData.options.includeFields.includes(property.name)
-            )
+            this.context.options.includeFields?.includes(property.name)
+          )
           : template.commonProperties;
         const formattedCommonProperties = new Map<string, any>();
         const formattedProperties = new Map<string, any>();
 
-        const properties = sharedData.options.includeFields
+        const properties = this.context.options.includeFields
           ? template.properties?.filter(property =>
-              sharedData.options.includeFields.includes(property.name)
-            )
+            this.context.options.includeFields?.includes(property.name)
+          )
           : template.properties;
+
         properties?.forEach(property =>
           formattedProperties.set(
             property.name,
@@ -219,12 +165,13 @@ export class EntityAdapterProcessor {
         return {
           _id: template._id,
           name: template.name,
-          label: template.label,
           ...(templateTranslations
             ? { translatedLabel: templateTranslations.values[template.name] }
             : {}),
-          color: template.color,
-          entityViewPage: template.entityViewPage,
+
+          label: (template.label || '') as string,
+          color: (template.color || '') as string,
+          entityViewPage: (template.entityViewPage || '') as string,
           commonProperties: formattedCommonProperties,
           properties: formattedProperties,
         };
@@ -242,8 +189,8 @@ export class EntityAdapterProcessor {
       type: property.type,
       ...(templateTranslations
         ? {
-            translatedLabel: templateTranslations.values[property.name],
-          }
+          translatedLabel: templateTranslations.values[property.name],
+        }
         : {}),
     };
   }
@@ -251,7 +198,6 @@ export class EntityAdapterProcessor {
   private async processPropertiesByType(
     propertiesByType: Map<string, any[]>
   ): Promise<Map<string, FormattedProperty>> {
-    const sharedData: ComposerSharedData = ensure(this.sharedData, 'Shared data not prepared');
     const allResults = new Map<string, FormattedProperty>();
     const processorsUsed: string[] = [];
 
@@ -260,7 +206,7 @@ export class EntityAdapterProcessor {
 
       if (processor && properties.length > 0) {
         try {
-          const results = await processor.processBatch(properties, sharedData, this.context);
+          const results = await processor.processBatch(properties, this.context);
 
           results.forEach((property, key) => {
             allResults.set(key, property);

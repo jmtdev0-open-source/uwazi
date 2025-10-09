@@ -1,14 +1,14 @@
-import { FormattedProperty, PropertyValue, PropertyTypeProcessor } from './types';
+import { FormattedProperty, PropertyValue, PropertyTypeProcessor, ProcessingContext } from './types';
 
 export class AdapterSelectProcessor implements PropertyTypeProcessor {
   readonly name = 'AdapterSelectProcessor';
   readonly priority = 15;
   readonly propertyTypes = ['select', 'multiselect'];
 
-  async processBatch(properties: any[], sharedData: any): Promise<Map<string, FormattedProperty>> {
+  async processBatch(properties: any[], context: ProcessingContext): Promise<Map<string, FormattedProperty>> {
     const results = new Map<string, FormattedProperty>();
 
-    const { selectFormatting, translations } = sharedData;
+    const { selectFormatting, translations } = context;
 
     for (const property of properties) {
       try {

@@ -1,5 +1,6 @@
 import { ClientSettings, Template } from 'app/apiResponseTypes';
 import { ClientTranslationSchema } from 'app/istore';
+import { CompositionOptions } from 'app/V2/domain';
 
 export interface PropertyValue {
   value: any;
@@ -52,65 +53,52 @@ export interface FormattedProperty {
   [key: string]: any;
 }
 
-export interface AdapterProcessingContext {
-  readonly options: any;
+export interface ProcessingContext {
+  readonly options: CompositionOptions;
   readonly language: string;
   readonly userId?: string;
   readonly userPermissions?: string[];
   readonly translations: ClientTranslationSchema[];
   readonly settings: ClientSettings;
   readonly templates: Template[];
-}
-
-export interface AdapterProcessingResult {
-  readonly processedProperties: Map<string, FormattedProperty>;
-  readonly errors: ProcessingError[];
-  readonly processingTime: number;
-}
-
-export interface ProcessingError {
-  readonly field: string;
-  readonly error: string;
-  readonly timestamp: Date;
-}
-
-export interface ComposerSharedData {
-  options: any;
-  language: string;
-  translations: ClientTranslationSchema[];
-  settings: any;
-  templates: Template[];
-  dateFormatting: {
+  // Pre-calculated formatting utilities
+  readonly dateFormatting: {
     format: string;
     timezone?: string;
     includeTime: boolean;
     relativeTime: boolean;
     locale: string;
   };
-  selectFormatting: {
+  readonly selectFormatting: {
     showLabels: boolean;
     showIcons: boolean;
     showUrls: boolean;
     includeOptions: boolean;
   };
-  relationshipFormatting: {
+  readonly relationshipFormatting: {
     nestedLevel: number;
     includeEntityData: boolean;
     includeTemplates: boolean;
-    maxRelationships: number;
+    maxRelationships?: number;
   };
-  fileFormatting: {
+  readonly fileFormatting: {
     includeFileMetadata: boolean;
     includeThumbnails: boolean;
-    maxFileSize: number;
-    allowedTypes: string[];
+    maxFileSize?: number;
+    allowedTypes?: string[];
   };
-  geolocationFormatting: {
+  readonly geolocationFormatting: {
     precision: number;
     format: string;
     includeMapData: boolean;
     combineGeolocation: boolean;
   };
+}
+
+export interface ProcessingError {
+  readonly field: string;
+  readonly error: string;
+  readonly timestamp: Date;
 }
 
 export interface PropertyTypeProcessor {
@@ -120,7 +108,6 @@ export interface PropertyTypeProcessor {
 
   processBatch(
     properties: any[],
-    sharedData: ComposerSharedData,
-    context: AdapterProcessingContext
+    context: ProcessingContext
   ): Promise<Map<string, FormattedProperty>>;
 }
