@@ -42,6 +42,7 @@ describe('Pre-Calculated Metadata Flow', () => {
             expect(result).toEqual({});
             expect(result.entities).toBeDefined();
             expect(result.errors).toBeDefined();
+            expect(result.entities.length).toBeGreaterThan(0);
         });
     });
 

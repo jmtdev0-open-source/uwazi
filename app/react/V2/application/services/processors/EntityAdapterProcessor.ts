@@ -1,9 +1,6 @@
-import { flatMap, groupBy, map, uniq } from 'lodash';
-import { Template } from 'app/apiResponseTypes';
-import { ClientTranslationContextSchema } from 'app/istore';
+import { flatMap, groupBy, map, sortBy, uniq } from 'lodash';
 import { Entity } from 'app/V2/domain';
 import { ComposedTemplate } from 'app/V2/domain/entities/types';
-import { PropertySchema } from 'shared/types/commonTypes';
 import { ensure } from 'shared/tsUtils';
 import {
   FormattedProperty,
@@ -11,13 +8,16 @@ import {
   ProcessingError,
   PropertyTypeProcessor,
 } from './types';
+import { AdapterTemplateProcessor } from './AdapterTemplateProcessor';
 
 export class EntityAdapterProcessor {
   private readonly context: ProcessingContext;
   private readonly processors: Map<string, PropertyTypeProcessor> = new Map();
+  private readonly templateProcessor: AdapterTemplateProcessor;
 
   constructor(context: ProcessingContext) {
     this.context = context;
+    this.templateProcessor = new AdapterTemplateProcessor(context);
   }
 
   registerProcessor(processor: PropertyTypeProcessor): void {
@@ -77,7 +77,7 @@ export class EntityAdapterProcessor {
     try {
       const templatesIds = uniq(entities.map(entity => entity.template));
 
-      const templatesData = this.formatTemplateData(templatesIds);
+      const templatesData = this.templateProcessor.formatTemplateData(templatesIds);
       const templatesById = new Map<string, ComposedTemplate>();
       templatesData.forEach(template => {
         templatesById.set(template._id, template);
@@ -96,7 +96,7 @@ export class EntityAdapterProcessor {
       const batchResults = await this.processPropertiesByType(propertiesByType);
 
       batchResults.forEach(({ entity, rawEntity, ...property }) => {
-        entity.metadata.push(property);
+        entity.metadata.splice(property.index, 0, property);
       });
     } catch (error) {
       allErrors.push({
@@ -107,11 +107,12 @@ export class EntityAdapterProcessor {
     }
 
     const composedEntities = formattedEntities.map(({ rawEntity, ...restEntity }) => {
-      const { template, ...entity } = restEntity;
+      const { template, metadata, ...entity } = restEntity;
       if (template) {
         const { properties, commonProperties, ...restTemplate } = template;
         return {
           ...entity,
+          metadata: sortBy(metadata, 'index'),
           template: restTemplate,
         };
       }
@@ -126,74 +127,11 @@ export class EntityAdapterProcessor {
     };
   }
 
-  formatTemplateData(templatesIds: string[]): ComposedTemplate[] {
-    return this.context.templates
-      .filter((template: Template) => templatesIds.includes(template._id))
-      .map((template: Template) => {
-        const templateTranslations = this.context.options.translateLabels && this.context.translations
-          ? this.context.translations
-            .find(t => t.locale === this.context.language)
-            ?.contexts.find(t => t._id === template._id)
-          : undefined;
-
-        const commonProperties = this.context.options.includeFields
-          ? template.commonProperties?.filter(property =>
-            this.context.options.includeFields?.includes(property.name)
-          )
-          : template.commonProperties;
-        const formattedCommonProperties = new Map<string, any>();
-        const formattedProperties = new Map<string, any>();
-
-        const properties = this.context.options.includeFields
-          ? template.properties?.filter(property =>
-            this.context.options.includeFields?.includes(property.name)
-          )
-          : template.properties;
-
-        properties?.forEach(property =>
-          formattedProperties.set(
-            property.name,
-            this.formatPropertyDefinition(property, templateTranslations)
-          )
-        );
-        commonProperties?.forEach(property =>
-          formattedCommonProperties.set(
-            property.name,
-            this.formatPropertyDefinition(property, templateTranslations)
-          )
-        );
-        return {
-          _id: template._id,
-          name: template.name,
-          ...(templateTranslations
-            ? { translatedLabel: templateTranslations.values[template.name] }
-            : {}),
-
-          label: (template.label || '') as string,
-          color: (template.color || '') as string,
-          entityViewPage: (template.entityViewPage || '') as string,
-          commonProperties: formattedCommonProperties,
-          properties: formattedProperties,
-        };
-      });
+  // Template processing moved to AdapterTemplateProcessor
+  private formatTemplateData(templatesIds: string[]): ComposedTemplate[] {
+    return this.templateProcessor.formatTemplateData(templatesIds);
   }
 
-  formatPropertyDefinition(
-    property: PropertySchema,
-    templateTranslations?: ClientTranslationContextSchema
-  ) {
-    return {
-      _id: property._id,
-      name: property.name,
-      label: property.label,
-      type: property.type,
-      ...(templateTranslations
-        ? {
-          translatedLabel: templateTranslations.values[property.name],
-        }
-        : {}),
-    };
-  }
 
   private async processPropertiesByType(
     propertiesByType: Map<string, any[]>
