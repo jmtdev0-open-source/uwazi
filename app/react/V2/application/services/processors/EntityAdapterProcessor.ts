@@ -30,7 +30,6 @@ export class EntityAdapterProcessor {
     });
   }
 
-
   private collectPropertiesByType(entities: Partial<Entity>[]): Map<string, any[]> {
     const propertiesByType = new Map<string, any[]>();
 
@@ -131,7 +130,6 @@ export class EntityAdapterProcessor {
   private formatTemplateData(templatesIds: string[]): ComposedTemplate[] {
     return this.templateProcessor.formatTemplateData(templatesIds);
   }
-
 
   private async processPropertiesByType(
     propertiesByType: Map<string, any[]>

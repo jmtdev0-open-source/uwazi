@@ -19,6 +19,7 @@ export interface DateCompositionOptions {
   includeTime?: boolean; // Include time in date formatting
   relativeTime?: boolean; // Show relative time (e.g., "2 days ago")
   locale?: string; // Locale for date formatting
+  formatDate?: boolean; // Format date
 }
 
 export interface SelectCompositionOptions {

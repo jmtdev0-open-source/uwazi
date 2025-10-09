@@ -1,27 +1,111 @@
 import moment from 'moment';
-import { FormattedProperty, PropertyValue, PropertyTypeProcessor, ProcessingContext } from './types';
+import { PropertyValue, ProcessingContext } from './types';
+import { BasePropertyProcessor } from './BasePropertyProcessor';
 
-export class AdapterDateProcessor implements PropertyTypeProcessor {
+export class AdapterDateProcessor extends BasePropertyProcessor {
   readonly name = 'AdapterDateProcessor';
   readonly priority = 10;
   readonly propertyTypes = ['date', 'multidate', 'daterange', 'multidaterange'];
 
-  async processBatch(properties: any[], context: ProcessingContext): Promise<Map<string, FormattedProperty>> {
-    const results = new Map<string, FormattedProperty>();
-
-    const { dateFormatting } = context;
-
-    for (const property of properties) {
-      try {
-        const key = `${property._entityId}:${property.name}`;
-        const values = this.formatDateProperty(property, dateFormatting);
-        results.set(key, { ...property, values });
-      } catch (error) {
-        console.error(`Error processing date property ${property._fieldName}:`, error);
-      }
+  protected formatProperty(property: any, context: ProcessingContext): PropertyValue[] {
+    if (this.shouldSkipFormatting(context, 'date')) {
+      return this.createRawValues(property);
     }
 
-    return results;
+    const dateFormat = this.getCustomFormat(context, 'date', context.dateFormatting.format);
+    const dateFormatting = {
+      ...context.dateFormatting,
+      format: dateFormat,
+    };
+
+    return this.formatDateProperty(property, dateFormatting);
+  }
+
+  /**
+   * Create raw values for date properties
+   */
+  protected createRawValues(property: any): PropertyValue[] {
+    if (property.type === 'date' || property.type === 'multidate') {
+      return this.createRawSingleValues(property);
+    }
+
+    if (property.type === 'daterange' || property.type === 'multidaterange') {
+      return this.createRawRangeValues(property);
+    }
+
+    // Fallback to base implementation
+    return super.createRawValues(property);
+  }
+
+  /**
+   * Create raw single date values
+   */
+  private createRawSingleValues(property: any): PropertyValue[] {
+    const values = Array.isArray(property.value) ? property.value : [property.value];
+    return values.map((propertyValue: PropertyValue) => {
+      if (!propertyValue) {
+        return {
+          value: propertyValue,
+          label: '',
+          displayValue: '',
+        };
+      }
+      return {
+        ...propertyValue,
+        value: propertyValue.value,
+        label: propertyValue.value?.toString() || '',
+        displayValue: propertyValue.value?.toString() || '',
+      };
+    });
+  }
+
+  /**
+   * Create raw date range values
+   */
+  private createRawRangeValues(property: any): PropertyValue[] {
+    const ranges = Array.isArray(property.value) ? property.value : [property.value];
+    return ranges.map((propertyValue: PropertyValue) => {
+      const { from, to } = propertyValue.value;
+      if (!from && !to) {
+        return {
+          ...propertyValue,
+          label: '',
+          displayValue: '',
+        };
+      }
+      const fromStr = from ? from.toString() : '';
+      const toStr = to ? to.toString() : '';
+      const rangeStr = fromStr && toStr ? `${fromStr} ~ ${toStr}` : fromStr || toStr;
+      return {
+        ...propertyValue,
+        label: rangeStr,
+        displayValue: rangeStr,
+      };
+    });
+  }
+
+  /**
+   * Check if date formatting should be skipped
+   */
+  protected shouldSkipFormatting(context: ProcessingContext, formatKey?: string): boolean {
+    if (formatKey === 'date') {
+      return context.options.dateOptions?.formatDate === false;
+    }
+    return false;
+  }
+
+  /**
+   * Get custom date format from options
+   */
+  protected getCustomFormat(
+    context: ProcessingContext,
+    formatKey: string,
+    defaultFormat: string
+  ): string {
+    if (formatKey === 'date') {
+      return context.options.dateOptions?.dateFormat || defaultFormat;
+    }
+    return defaultFormat;
   }
 
   private formatDateProperty(property: any, dateFormatting: any): PropertyValue[] {
@@ -60,7 +144,7 @@ export class AdapterDateProcessor implements PropertyTypeProcessor {
       let momentInstance = moment.utc(propertyValue.value, 'X');
       momentInstance = momentInstance.locale(locale);
 
-      if (timezone) {
+      if (timezone && typeof momentInstance.tz === 'function') {
         momentInstance = momentInstance.tz(timezone);
       }
 

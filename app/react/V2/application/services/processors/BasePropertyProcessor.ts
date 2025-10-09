@@ -1,0 +1,122 @@
+import {
+  FormattedProperty,
+  PropertyValue,
+  PropertyMetadata,
+  ProcessingContext,
+  PropertyTypeProcessor,
+} from './types';
+
+export abstract class BasePropertyProcessor implements PropertyTypeProcessor {
+  abstract readonly name: string;
+  abstract readonly priority: number;
+  abstract readonly propertyTypes: string[];
+
+  async processBatch(
+    properties: any[],
+    context: ProcessingContext
+  ): Promise<Map<string, FormattedProperty>> {
+    const results = new Map<string, FormattedProperty>();
+
+    for (const property of properties) {
+      try {
+        const key = `${property._entityId}:${property.name}`;
+        const values = this.formatProperty(property, context);
+        results.set(key, { ...property, values });
+      } catch (error) {
+        console.error(`Error processing ${this.name} property ${property.name}:`, error);
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Format property values (to be overridden by subclasses)
+   */
+  protected formatProperty(property: any, context: ProcessingContext): PropertyValue[] {
+    return this.createRawValues(property);
+  }
+
+  protected createRawValues(property: any): PropertyValue[] {
+    return [
+      {
+        value: property.value,
+        label: property.value?.toString() || '',
+        displayValue: property.value?.toString() || '',
+      },
+    ];
+  }
+
+  protected shouldSkipFormatting(context: ProcessingContext, formatKey?: string): boolean {
+    return false;
+  }
+
+  protected getCustomFormat(
+    context: ProcessingContext,
+    formatKey: string,
+    defaultFormat: string
+  ): string {
+    return defaultFormat;
+  }
+
+  protected getPropertyLabel(property: any, fieldName: string): string {
+    return property.label || property.name || fieldName;
+  }
+
+  protected getTranslatedLabel(
+    property: any,
+    fieldName: string,
+    context: ProcessingContext
+  ): string | undefined {
+    if (!context.options.translateLabels || !context.translations) {
+      return undefined;
+    }
+
+    const translationKey = property.translateContext || fieldName;
+    return (
+      context.translations
+        .find(t => t.locale === context.language)
+        ?.contexts.find(t => t.id === property._id)?.values[translationKey] || undefined
+    );
+  }
+
+  protected buildPropertyMetadata(
+    property: any,
+    fieldName: string,
+    context: ProcessingContext
+  ): PropertyMetadata {
+    return {
+      showInCard: property.showInCard || false,
+      propertyType: property.type,
+      isInherited: this.isInheritedProperty(property),
+      isRequired: property.required || false,
+      isMultiple: property.multiple || false,
+      noLabel: property.noLabel || false,
+      fullWidth: property.fullWidth || false,
+      obsolete: property.obsolete || false,
+      indexInTemplate: property.indexInTemplate,
+      parent: property.parent,
+      translateContext: property.translateContext,
+      fileName: property.fileName,
+      timeLinks: property.timeLinks,
+      relatedEntity: property.relatedEntity,
+      inheritedType: property.inheritedType,
+      inheritedValue: property.inheritedValue,
+      denormalizedProperty: property.denormalizedProperty,
+      sortedBy: property.sortedBy,
+      timestamp: property.timestamp,
+      style: property.style,
+      url: property.url,
+      icon: property.icon,
+    };
+  }
+
+  protected isInheritedProperty(property: any): boolean {
+    return !!(
+      property.inherited ||
+      property.inheritedType ||
+      property.inheritedValue ||
+      property.originalValue
+    );
+  }
+}

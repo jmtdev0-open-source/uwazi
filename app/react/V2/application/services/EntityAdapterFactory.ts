@@ -26,7 +26,11 @@ export class EntityAdapterFactory {
       templates: context.templates || [],
       // Pre-calculate formatting utilities
       dateFormatting: {
-        format: options.dateOptions?.dateFormat || options.dateFormat || context.settings?.dateFormat || 'YYYY-MM-DD',
+        format:
+          options.dateOptions?.dateFormat ||
+          options.dateFormat ||
+          context.settings?.dateFormat ||
+          'YYYY-MM-DD',
         timezone: options.dateOptions?.timezone,
         includeTime: options.dateOptions?.includeTime || false,
         relativeTime: options.dateOptions?.relativeTime || false,
