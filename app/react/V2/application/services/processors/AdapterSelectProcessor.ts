@@ -1,54 +1,21 @@
-/**
- * Elegant Select Processor
- * Processes select properties using shared data and context
- */
-import { PropertyTypeProcessor } from './ElegantBatchProcessor';
-import { 
-  FormattedProperty, 
-  PropertyValue, 
-  BatchProcessingContext 
-} from './PropertyStructure';
-import { SharedPropertyFactory } from './SharedPropertyFactory';
+import { FormattedProperty, PropertyValue, PropertyTypeProcessor } from './types';
 
-export class ElegantSelectProcessor implements PropertyTypeProcessor {
-  readonly name = 'ElegantSelectProcessor';
+export class AdapterSelectProcessor implements PropertyTypeProcessor {
+  readonly name = 'AdapterSelectProcessor';
   readonly priority = 15;
   readonly propertyTypes = ['select', 'multiselect'];
-  
-  private sharedPropertyFactory: SharedPropertyFactory;
 
-  constructor() {
-    // Will be initialized with context
-  }
-
-  /**
-   * Initialize with context (called by ElegantBatchProcessor)
-   */
-  initialize(context: BatchProcessingContext): void {
-    this.sharedPropertyFactory = new SharedPropertyFactory(context);
-  }
-
-  /**
-   * Process all select properties in batch using shared data
-   */
-  async processBatch(
-    properties: any[],
-    sharedData: any,
-    context: BatchProcessingContext
-  ): Promise<Map<string, FormattedProperty>> {
+  async processBatch(properties: any[], sharedData: any): Promise<Map<string, FormattedProperty>> {
     const results = new Map<string, FormattedProperty>();
-    
-    // Use shared select formatting utilities
-    const { selectFormatting, translations } = sharedData;
-    const { showLabels, showIcons, showUrls, includeOptions } = selectFormatting;
 
-    // Process all select properties using shared utilities
+    const { selectFormatting, translations } = sharedData;
+
     for (const property of properties) {
       try {
         const key = `${property._entityId}:${property._fieldName}`;
         const values = this.formatSelectProperty(property, selectFormatting, translations);
-        const formattedProperty = this.sharedPropertyFactory.createFormattedProperty(values, property, 'select');
-        results.set(key, formattedProperty);
+
+        results.set(key, { ...property, values });
       } catch (error) {
         console.error(`Error processing select property ${property._fieldName}:`, error);
       }
@@ -57,9 +24,6 @@ export class ElegantSelectProcessor implements PropertyTypeProcessor {
     return results;
   }
 
-  /**
-   * Format a single select property using shared utilities
-   */
   private formatSelectProperty(
     property: any,
     selectFormatting: any,
@@ -70,7 +34,7 @@ export class ElegantSelectProcessor implements PropertyTypeProcessor {
     if (property.value !== undefined && !property.options) {
       // Simple value without options
       const values = Array.isArray(property.value) ? property.value : [property.value];
-      
+
       return values.map((value: any): PropertyValue => {
         const label = showLabels ? value.toString() : '';
         return {
@@ -83,13 +47,12 @@ export class ElegantSelectProcessor implements PropertyTypeProcessor {
       });
     }
 
-    // Handle properties with options
     if (property.options && Array.isArray(property.options)) {
       const values = Array.isArray(property.value) ? property.value : [property.value];
-      
+
       return values.map((selectedValue: any): PropertyValue => {
         const option = property.options.find((opt: any) => opt.value === selectedValue);
-        
+
         if (!option) {
           return {
             value: selectedValue,
@@ -99,7 +62,8 @@ export class ElegantSelectProcessor implements PropertyTypeProcessor {
         }
 
         // Apply translations if available
-        const translatedLabel = translations[option.translateContext || option.label] || option.label;
+        const translatedLabel =
+          translations[option.translateContext || option.label] || option.label;
 
         return {
           value: selectedValue,
@@ -111,11 +75,12 @@ export class ElegantSelectProcessor implements PropertyTypeProcessor {
       });
     }
 
-    return [{
-      value: property.value,
-      label: property.value?.toString() || '',
-      displayValue: property.value?.toString() || '',
-    }];
+    return [
+      {
+        value: property.value,
+        label: property.value?.toString() || '',
+        displayValue: property.value?.toString() || '',
+      },
+    ];
   }
-
 }

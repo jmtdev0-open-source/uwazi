@@ -1,3 +1,4 @@
+import { EntitySchema } from 'shared/types/entityType';
 import {
   ComposedFileData,
   ComposedNavigationData,
@@ -20,5 +21,5 @@ export interface Entity {
   readonly relationships?: ComposedRelationshipData;
   readonly files?: ComposedFileData;
   readonly navigation?: ComposedNavigationData;
-  readonly rawData?: any;
+  readonly rawEntity?: EntitySchema;
 }

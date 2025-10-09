@@ -93,7 +93,7 @@ export interface CompositionOptions {
   formatTimeLinks?: boolean; // Format time links
   translateLabels?: boolean; // Translate labels
   includeRawMetadata?: boolean; // Include raw values
-  
+
   // Type-specific options (nested for flexibility)
   dateOptions?: DateCompositionOptions;
   selectOptions?: SelectCompositionOptions;
@@ -137,10 +137,13 @@ export interface EntityPermissions {
 }
 
 export interface ComposedTemplate {
-  readonly id: string;
+  readonly _id: string;
   readonly name: string;
+  readonly label: string;
+  readonly translatedLabel?: string;
   readonly color: string;
-  readonly properties: ComposedProperty[];
+  readonly properties: Map<string, ComposedProperty>;
+  readonly commonProperties: Map<string, ComposedProperty>;
 }
 
 export interface ComposedProperty {

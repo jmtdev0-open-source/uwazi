@@ -72,6 +72,25 @@ export class FluentCompositionBuilder {
     this.options.includeFiles = true;
     this.options.includeNavigation = true;
     this.options.includePermissions = true;
+    this.options.combineGeolocation = true;
+    this.options.relationshipNestedLevel = 3;
+    this.options.formatTimeLinks = true;
+    this.options.translateLabels = true;
+    this.options.includePropertyMetadata = true;
+    return this;
+  }
+
+  forForm(): FluentCompositionBuilder {
+    this.options.includeMetadata = true;
+    this.options.includeRelationships = true;
+    this.options.includeFiles = true;
+    this.options.includeNavigation = true;
+    this.options.includePermissions = true;
+    this.options.combineGeolocation = false;
+    this.options.formatTimeLinks = true;
+    this.options.translateLabels = true;
+    this.options.includePropertyMetadata = true;
+    this.options.editionMode = true;
     return this;
   }
 

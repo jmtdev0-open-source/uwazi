@@ -1,19 +1,17 @@
-/**
- * Entity Composition Use Case
- * Unified use case for entity composition with legacy pattern integration
- */
 import { IncomingHttpHeaders } from 'http';
+import { atomStore } from 'app/V2/atoms';
+import { settingsAtom } from 'app/V2/atoms/settingsAtom';
+import { templatesAtom } from 'app/V2/atoms/templatesAtom';
+import { translationsAtom } from 'app/V2/atoms/translationsAtoms';
 import { EntityRepository } from '../../infrastructure/repositories/EntityRepository';
-import { PropertyValueBuilder } from '../services/PropertyValueBuilder';
 import {
   CompositionOptions,
   CompositionResult,
   BatchCompositionResult,
   CompositionError,
 } from '../../domain/entities/types';
-import { Entity } from 'app/V2/domain';
-import { EntityFormatter } from '../services/EntityFormatter';
 import { FluentCompositionBuilder } from '../FluentCompositionBuilder';
+import { EntityAdapterFactory } from '../services/EntityAdapterFactory';
 
 export interface EntityCompositionUseCase {
   composeEntity(
@@ -44,11 +42,7 @@ export interface EntityCompositionUseCase {
 }
 
 export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
-  constructor(
-    private readonly entityRepository: EntityRepository,
-    private readonly propertyValueBuilder: PropertyValueBuilder,
-    private readonly entityFormatter: EntityFormatter
-  ) {}
+  constructor(private readonly entityRepository: EntityRepository) {}
 
   async composeEntity(
     entityId: string,
@@ -65,14 +59,20 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         };
       }
 
-      const composedEntity = await this.entityFormatter.composeEntityWithFormatting(
-        entity,
-        options,
-        context
-      );
+      // Use the new EntityAdapterProcessor approach
+      const processor = EntityAdapterFactory.createPipeline(options, {
+        language: entity.language || 'en',
+        userId: context.userId,
+        userPermissions: context.userPermissions,
+        settings: atomStore.get(settingsAtom) || {},
+        templates: atomStore.get(templatesAtom) || [],
+        translations: atomStore.get(translationsAtom) || [],
+      });
+
+      const result = await processor.processEntity(entity);
 
       return {
-        entity: composedEntity,
+        entity: result.entity,
         success: true,
       };
     } catch (error) {
@@ -89,37 +89,34 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     options: CompositionOptions,
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
-    const results: Entity[] = [];
-    const errors: CompositionError[] = [];
-
     try {
       const entities = await this.entityRepository.findByIds(entityIds, options);
 
-      await Promise.all(
-        entities.map(async entity => {
-          try {
-            const composedEntity = await this.entityFormatter.composeEntityWithFormatting(
-              entity,
-              options,
-              context
-            );
-            results.push(composedEntity);
-          } catch (error) {
-            errors.push({
-              entityId: entity._id?.toString() || 'unknown',
-              error: error instanceof Error ? error.message : 'Unknown error',
-              timestamp: new Date(),
-            });
-          }
-        })
-      );
+      // Use the new EntityAdapterProcessor approach for batch processing
+      const processor = EntityAdapterFactory.createPipeline(options, {
+        language: entities[0]?.language || 'en',
+        userId: context.userId,
+        userPermissions: context.userPermissions,
+        settings: atomStore.get(settingsAtom) || {},
+        templates: atomStore.get(templatesAtom) || [],
+        translations: atomStore.get(translationsAtom) || [],
+      });
+
+      const result = await processor.processAllEntities(entities);
+
+      // Convert processing errors to composition errors
+      const errors: CompositionError[] = result.errors.map(error => ({
+        entityId: 'batch',
+        error: error.error,
+        timestamp: error.timestamp,
+      }));
 
       return {
-        entities: results,
+        entities: result.entities,
         errors,
         success: errors.length === 0,
         totalProcessed: entityIds.length,
-        successCount: results.length,
+        successCount: result.entities.length,
         errorCount: errors.length,
       };
     } catch (error) {
@@ -142,17 +139,84 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
 
   async composeEntitiesForCardView(
     entityIds: string[],
-    _context: { userId?: string; userPermissions?: string[] }
+    context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
-    const builder = this.fluentForEntities(entityIds).forCardView();
-    return builder.compose() as Promise<BatchCompositionResult>;
+    try {
+      const entities = await this.entityRepository.findByIds(entityIds, {});
+
+      // Use the card view pipeline for optimized card rendering
+      const processor = EntityAdapterFactory.createCardViewPipeline(
+        {
+          onlyForCards: true,
+          includeTemplate: true,
+          includeMetadata: true,
+          includePropertyMetadata: false, // Skip heavy metadata for cards
+        },
+        {
+          language: entities[0]?.language || 'en',
+          userId: context.userId,
+          userPermissions: context.userPermissions,
+          settings: atomStore.get(settingsAtom) || {},
+          templates: atomStore.get(templatesAtom) || [],
+          translations: atomStore.get(translationsAtom) || [],
+        }
+      );
+
+      const result = await processor.processAllEntities(entities);
+
+      const errors: CompositionError[] = result.errors.map(error => ({
+        entityId: 'batch',
+        error: error.error,
+        timestamp: error.timestamp,
+      }));
+
+      return {
+        entities: result.entities,
+        errors,
+        success: errors.length === 0,
+        totalProcessed: entityIds.length,
+        successCount: result.entities.length,
+        errorCount: errors.length,
+      };
+    } catch (error) {
+      return {
+        entities: [],
+        errors: [
+          {
+            entityId: 'batch',
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date(),
+          },
+        ],
+        success: false,
+        totalProcessed: entityIds.length,
+        successCount: 0,
+        errorCount: entityIds.length,
+      };
+    }
   }
 
   async composeEntitiesForDetailView(
     entityIds: string[],
+    context: { userId?: string; userPermissions?: string[] }
+  ): Promise<BatchCompositionResult> {
+    const detailOptions: CompositionOptions = {
+      includeTemplate: true,
+      includeMetadata: true,
+      includePropertyMetadata: true,
+      includeRelationships: true,
+      includeFiles: true,
+      includeNavigation: true,
+    };
+
+    return this.composeEntities(entityIds, detailOptions, context);
+  }
+
+  async composeEntitiesForFormView(
+    entityIds: string[],
     _context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
-    const builder = this.fluentForEntities(entityIds).forDetailView();
+    const builder = this.fluentForEntities(entityIds).forForm();
     return builder.compose() as Promise<BatchCompositionResult>;
   }
 

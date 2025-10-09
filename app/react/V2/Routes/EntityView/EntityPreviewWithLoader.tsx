@@ -139,7 +139,7 @@ const EntityPreviewContent = ({
                   maxHeight: '40vh',
                 }}
               >
-                {JSON.stringify(entity.rawData, null, 2)}
+                {JSON.stringify(entity, null, 2)}
               </pre>
             </div>
           </div>
@@ -273,8 +273,6 @@ const EntityPreviewWithLoader = () => {
       </div>
     );
   }
-
-
   return providerReady && useCase ? (
     <EntityCompositionProvider useCase={useCase}>
       <EntityPreviewContent compositions={{ full, dateFields, selectFields }} />
