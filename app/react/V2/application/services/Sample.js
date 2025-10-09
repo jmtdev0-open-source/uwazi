@@ -11,6 +11,20 @@ const entity = {
     label: 'Template 1',
     color: '#00000',
   },
+  // Additional entity properties for comprehensive testing
+  published: true,
+  language: 'en',
+  mongoLanguage: 'en',
+  user: '58ada34d299e82674854510f',
+  permissions: [
+    {
+      refId: '58ada34d299e82674854510f',
+      type: 'user',
+      level: 'write',
+    },
+  ],
+  obsoleteMetadata: [],
+  __v: 4,
   metadata: [
     {
       name: 'geolocationisolated',
@@ -498,6 +512,101 @@ const entity = {
           },
         ],
       },
+      // Additional file and media properties for comprehensive testing
+      document_file: {
+        values: [
+          {
+            value: '/api/files/1759374705932document.pdf',
+            fileName: 'Sample Document.pdf',
+            type: 'application/pdf',
+            size: 2048000,
+            url: '/api/files/1759374705932document.pdf',
+            thumbnail: '/api/files/1759374705932document_thumb.jpg',
+            originalName: 'Sample Document.pdf',
+            mimetype: 'application/pdf',
+          },
+        ],
+        propertyMedatada: {
+          showInCard: true,
+          maxFileSize: 5000000,
+          allowedTypes: ['application/pdf', 'text/plain'],
+        },
+      },
+      audio_file: {
+        values: [
+          {
+            value: '/api/files/1759374705932audio.mp3',
+            fileName: 'Sample Audio.mp3',
+            type: 'audio/mpeg',
+            size: 1024000,
+            url: '/api/files/1759374705932audio.mp3',
+            originalName: 'Sample Audio.mp3',
+            mimetype: 'audio/mpeg',
+            duration: 120, // seconds
+            bitrate: 128,
+          },
+        ],
+        propertyMedatada: {
+          showInCard: false,
+          maxFileSize: 10000000,
+          allowedTypes: ['audio/mpeg', 'audio/wav'],
+        },
+      },
+      // Additional geolocation properties for comprehensive testing
+      geolocation_cluster: {
+        values: [
+          {
+            value: { latitude: 40.7128, longitude: -74.0060 },
+            displayValue: '40.7128°N, 74.0060°W',
+            properties: {
+              template: 'New York',
+              info: 'Central Park Cluster',
+              color: '#ff0000',
+              entity: { id: '1', title: 'Simple title' },
+            },
+            coordinateData: {
+              lat: 40.7128,
+              lng: -74.0060,
+              latDMS: '40°42\'46.08"N',
+              lngDMS: '74°00\'21.60"W',
+              decimalLat: 40.7128,
+              decimalLng: -74.0060,
+              hemisphere: { lat: 'N', lng: 'W' },
+              precision: 6,
+              accuracy: 'high',
+            },
+          },
+          {
+            value: { latitude: 40.7589, longitude: -73.9851 },
+            displayValue: '40.7589°N, 73.9851°W',
+            properties: {
+              template: 'Times Square',
+              info: 'Times Square Cluster',
+              color: '#00ff00',
+              entity: { id: '1', title: 'Simple title' },
+            },
+            coordinateData: {
+              lat: 40.7589,
+              lng: -73.9851,
+              latDMS: '40°45\'32.04"N',
+              lngDMS: '73°59\'06.36"W',
+              decimalLat: 40.7589,
+              decimalLng: -73.9851,
+              hemisphere: { lat: 'N', lng: 'W' },
+              precision: 6,
+              accuracy: 'high',
+            },
+          },
+        ],
+        propertyMedatada: {
+          showInCard: true,
+          mapCenter: { latitude: 40.7358, longitude: -73.9955 },
+          mapBounds: { north: 40.8, south: 40.7, east: -73.9, west: -74.1 },
+          clustered: true,
+          totalMarkers: 2,
+          clusterRadius: 50,
+        },
+      },
     },
   ],
 };
@@ -717,6 +826,84 @@ const rawEntity = {
           lon: 15.468750000000002,
           label: '',
         },
+      },
+    ],
+    // Additional comprehensive relationship data
+    relationship_complex: [
+      {
+        value: 'complex-entity-1',
+        label: 'Complex Related Entity 1',
+        icon: {
+          _id: 'USA',
+          label: 'United States',
+          type: 'Flags',
+        },
+        type: 'entity',
+        inheritedValue: [
+          {
+            value: 'complex-multiselect-1',
+            label: 'Complex Multiselect Value 1',
+          },
+          {
+            value: 'complex-multiselect-2',
+            label: 'Complex Multiselect Value 2',
+          },
+        ],
+        inheritedType: 'multiselect',
+        relationshipData: {
+          entityId: 'complex-entity-1',
+          entityTitle: 'Complex Related Entity 1',
+          relationshipType: 'complex_relationship',
+          template: { id: 'complex-template-1', name: 'Complex Template', color: '#ff6b6b' },
+          metadata: {
+            description: 'This is a complex relationship with rich metadata',
+            category: 'primary',
+            priority: 'high',
+          },
+        },
+      },
+      {
+        value: 'complex-entity-2',
+        label: 'Complex Related Entity 2',
+        icon: '',
+        type: 'entity',
+        inheritedValue: [],
+        inheritedType: 'multiselect',
+        relationshipData: {
+          entityId: 'complex-entity-2',
+          entityTitle: 'Complex Related Entity 2',
+          relationshipType: 'secondary_relationship',
+          template: { id: 'complex-template-2', name: 'Secondary Template', color: '#4ecdc4' },
+          metadata: {
+            description: 'Secondary relationship with different metadata',
+            category: 'secondary',
+            priority: 'medium',
+          },
+        },
+      },
+    ],
+    // Additional file properties in raw format
+    document_file: [
+      {
+        value: '/api/files/1759374705932document.pdf',
+        fileName: 'Sample Document.pdf',
+        type: 'application/pdf',
+        size: 2048000,
+        originalName: 'Sample Document.pdf',
+        mimetype: 'application/pdf',
+        thumbnail: '/api/files/1759374705932document_thumb.jpg',
+      },
+    ],
+    audio_file: [
+      {
+        value: '/api/files/1759374705932audio.mp3',
+        fileName: 'Sample Audio.mp3',
+        type: 'audio/mpeg',
+        size: 1024000,
+        originalName: 'Sample Audio.mp3',
+        mimetype: 'audio/mpeg',
+        duration: 120,
+        bitrate: 128,
       },
     ],
   },
