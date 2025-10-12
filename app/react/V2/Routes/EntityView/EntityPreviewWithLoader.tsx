@@ -8,7 +8,6 @@ import {
   EntityCompositionProvider,
 } from '../../CustomHooks/useEntityComposition';
 
-
 const EntityPreviewContent = ({
   compositions,
 }: {

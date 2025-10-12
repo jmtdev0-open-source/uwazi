@@ -3,7 +3,6 @@ import { PropertyValue, ProcessingContext } from './types';
 
 export class RelationshipProcessor extends BasePropertyProcessor {
   readonly name = 'RelationshipProcessor';
-  readonly priority = 20;
   readonly propertyTypes = ['relationship'];
 
   protected formatProperty(property: any, context: ProcessingContext): PropertyValue[] {

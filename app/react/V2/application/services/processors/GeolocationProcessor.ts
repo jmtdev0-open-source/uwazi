@@ -3,7 +3,6 @@ import { PropertyValue, ProcessingContext } from './types';
 
 export class GeolocationProcessor extends BasePropertyProcessor {
   readonly name = 'GeolocationProcessor';
-  readonly priority = 25;
   readonly propertyTypes = ['geolocation'];
 
   protected formatProperty(property: any, context: ProcessingContext): PropertyValue[] {
@@ -64,7 +63,7 @@ export class GeolocationProcessor extends BasePropertyProcessor {
     const geolocationFormatting = {
       precision: context.precision,
       includeMapData: context.includeMapData,
-      combineGeolocation: context.combineGeolocation,
+      combineGeolocation: context.options.editionMode ? false : context.combineGeolocation,
     };
     const values = Array.isArray(property.value) ? property.value : [property.value];
 

@@ -19,19 +19,27 @@ export class EntityRepositoryImpl implements EntityRepository {
     options: { sharedIds: string[]; language: string; omitRelationships?: boolean },
     headers?: IncomingHttpHeaders
   ): Promise<EntitySchema[]> {
-    const searchString = `sharedId:(${options.sharedIds.join(' OR ')})`;
+    try {
+      if (options.sharedIds.length === 0) {
+        return [];
+      }
 
-    return searchEntitiesApi
-      .search(
+      const searchString = `sharedId:(${options.sharedIds.join(' OR ')})`;
+
+      const response = await searchEntitiesApi.search(
         {
           filters: {
             searchString,
           },
-          fields: [],
+          fields: ['_id', 'title', 'template', 'metadata', 'language'],
           limit: options.sharedIds.length,
         },
         headers
-      )
-      .then(response => response.rows);
+      );
+
+      return response.rows || [];
+    } catch (error) {
+      return [];
+    }
   }
 }

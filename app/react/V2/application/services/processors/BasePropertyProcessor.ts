@@ -8,7 +8,6 @@ import {
 
 export abstract class BasePropertyProcessor implements PropertyTypeProcessor {
   abstract readonly name: string;
-  abstract readonly priority: number;
   abstract readonly propertyTypes: string[];
 
   async processBatch(

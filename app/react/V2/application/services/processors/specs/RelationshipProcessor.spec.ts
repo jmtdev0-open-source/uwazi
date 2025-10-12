@@ -512,12 +512,4 @@ describe('RelationshipProcessor', () => {
       }
     });
   });
-
-  describe('Property Configuration', () => {
-    it('should have correct processor configuration', () => {
-      expect(processor.name).toBe('RelationshipProcessor');
-      expect(processor.priority).toBe(20);
-      expect(processor.propertyTypes).toEqual(['relationship']);
-    });
-  });
 });

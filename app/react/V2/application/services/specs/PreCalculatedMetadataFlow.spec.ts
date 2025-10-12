@@ -37,7 +37,7 @@ describe('Pre-Calculated Metadata Flow', () => {
         settings: settings as any,
         templates: templates as any,
         translations: translations as any,
-
+        thesauri: [],
         // Flattened formatting options
         dateFormat: testOptions.dateOptions?.dateFormat || 'YYYY-MM-DD',
         timezone: testOptions.dateOptions?.timezone,
@@ -83,7 +83,7 @@ describe('Pre-Calculated Metadata Flow', () => {
         settings: settings as any,
         templates: templates as any,
         translations: translations as any,
-
+        thesauri: [],
         // Flattened formatting options
         dateFormat: testOptions.dateOptions?.dateFormat || 'YYYY-MM-DD',
         timezone: testOptions.dateOptions?.timezone,

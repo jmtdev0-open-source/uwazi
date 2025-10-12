@@ -1,19 +1,18 @@
-import { AdapterDateProcessor } from '../AdapterDateProcessor';
+import { DatePropertyProcessor } from '../DatePropertyProcessor';
 import { ProcessingContext } from '../types';
 import { processingContext } from './fixtures';
 
 describe('AdapterDateProcessor', () => {
-  let processor: AdapterDateProcessor;
+  let processor: DatePropertyProcessor;
   let mockContext: ProcessingContext;
 
   beforeEach(() => {
-    processor = new AdapterDateProcessor();
+    processor = new DatePropertyProcessor();
     mockContext = processingContext;
   });
 
   describe('Performance Optimization', () => {
     it('should skip formatting when formatDate is false', async () => {
-      // Set formatDate to false for performance optimization
       mockContext.options.dateOptions = {
         formatDate: false,
       };

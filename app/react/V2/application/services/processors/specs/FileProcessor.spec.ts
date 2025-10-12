@@ -1,7 +1,7 @@
 import { FileProcessor } from '../FileProcessor';
 import { ProcessingContext } from '../types';
 import { entity } from '../../Sample';
-import { findInheritedRelationshipProperty } from './fixtures';
+import { findInheritedRelationshipProperty, processingContext } from './fixtures';
 
 describe('FileProcessor', () => {
   let processor: FileProcessor;
@@ -10,42 +10,7 @@ describe('FileProcessor', () => {
   beforeEach(() => {
     processor = new FileProcessor();
     mockContext = {
-      options: {
-        includeFiles: true,
-        fileOptions: {
-          includeFileMetadata: true,
-          includeThumbnails: true,
-          maxFileSize: 1000000,
-          allowedTypes: ['image/png', 'video/mp4'],
-        },
-      },
-      language: 'en',
-      translations: [],
-      settings: {} as any,
-      templates: [],
-
-      // Flattened formatting options
-      dateFormat: 'YYYY-MM-DD',
-      timezone: undefined,
-      includeTime: false,
-      relativeTime: false,
-      locale: 'en',
-      showLabels: true,
-      showIcons: false,
-      showUrls: false,
-      includeOptions: false,
-      nestedLevel: 1,
-      includeEntityData: false,
-      includeTemplates: false,
-      maxRelationships: undefined,
-      includeFileMetadata: true,
-      includeThumbnails: true,
-      maxFileSize: 1000000,
-      allowedTypes: ['image/png', 'video/mp4'],
-      precision: 6,
-      includeMapData: false,
-      combineGeolocation: false,
-      // Additional flattened properties
+      ...processingContext,
     };
   });
 
@@ -422,14 +387,6 @@ describe('FileProcessor', () => {
           expect(Array.isArray(result)).toBe(true);
         });
       }
-    });
-  });
-
-  describe('Property Configuration', () => {
-    it('should have correct processor configuration', () => {
-      expect(processor.name).toBe('FileProcessor');
-      expect(processor.priority).toBe(30);
-      expect(processor.propertyTypes).toEqual(['image', 'media', 'file']);
     });
   });
 });

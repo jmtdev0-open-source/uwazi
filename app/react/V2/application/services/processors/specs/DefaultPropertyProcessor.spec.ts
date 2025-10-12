@@ -135,12 +135,6 @@ describe('DefaultPropertyProcessor', () => {
   });
 
   describe('Property Types', () => {
-    it('should have correct processor configuration', () => {
-      expect(processor.name).toBe('DefaultPropertyProcessor');
-      expect(processor.priority).toBe(100);
-      expect(processor.propertyTypes).toEqual(['any']);
-    });
-
     it('should handle multiple different property types', async () => {
       const properties = [
         {

@@ -13,7 +13,7 @@ export const processingContext: ProcessingContext = {
   translations: [],
   settings: {},
   templates: [],
-
+  thesauri: [],
   // Flattened formatting options
   dateFormat: 'YYYY-MM-DD',
   timezone: 'UTC',

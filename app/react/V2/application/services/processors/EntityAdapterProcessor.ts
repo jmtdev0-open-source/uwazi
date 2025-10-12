@@ -8,8 +8,8 @@ import {
   PropertyTypeProcessor,
 } from './types';
 import { AdapterTemplateProcessor } from './AdapterTemplateProcessor';
-import { AdapterDateProcessor } from './AdapterDateProcessor';
-import { AdapterSelectProcessor } from './AdapterSelectProcessor';
+import { DatePropertyProcessor } from './DatePropertyProcessor';
+import { SelectPropertyProcessor } from './SelectPropertyProcessor';
 import { GeolocationProcessor } from './GeolocationProcessor';
 import { RelationshipProcessor } from './RelationshipProcessor';
 import { FileProcessor } from './FileProcessor';
@@ -29,8 +29,8 @@ export class EntityAdapterProcessor {
   }
 
   private initializeProcessors(): void {
-    const dateProcessor = new AdapterDateProcessor();
-    const selectProcessor = new AdapterSelectProcessor();
+    const dateProcessor = new DatePropertyProcessor();
+    const selectProcessor = new SelectPropertyProcessor();
     const geolocationProcessor = new GeolocationProcessor();
     const relationshipProcessor = new RelationshipProcessor();
     const fileProcessor = new FileProcessor();

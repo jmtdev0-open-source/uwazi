@@ -1,13 +1,8 @@
-/**
- * File Property Processor
- * Specialized processor for handling file and media properties with standardized structure
- */
 import { BasePropertyProcessor } from './BasePropertyProcessor';
 import { PropertyValue, ProcessingContext } from './types';
 
 export class FileProcessor extends BasePropertyProcessor {
   readonly name = 'FileProcessor';
-  readonly priority = 30;
   readonly propertyTypes = ['image', 'media', 'file'];
 
   protected formatProperty(property: any, context: ProcessingContext): PropertyValue[] {
@@ -18,9 +13,6 @@ export class FileProcessor extends BasePropertyProcessor {
     return this.formatFileProperty(property, context);
   }
 
-  /**
-   * Create raw values for file properties
-   */
   protected createRawValues(property: any): PropertyValue[] {
     const values = Array.isArray(property.value) ? property.value : [property.value];
     return values.map((file: any) => {
@@ -39,9 +31,6 @@ export class FileProcessor extends BasePropertyProcessor {
     });
   }
 
-  /**
-   * Check if file formatting should be skipped
-   */
   protected shouldSkipFormatting(context: ProcessingContext, formatKey?: string): boolean {
     if (formatKey === 'file') {
       return context.options.fileOptions?.includeFileMetadata === false;
@@ -68,7 +57,6 @@ export class FileProcessor extends BasePropertyProcessor {
         };
       }
 
-      // Validate file size
       if (fileFormatting.maxFileSize && file.size && file.size > fileFormatting.maxFileSize) {
         return {
           value: file,
@@ -78,7 +66,6 @@ export class FileProcessor extends BasePropertyProcessor {
         };
       }
 
-      // Validate file type
       if (
         fileFormatting.allowedTypes &&
         file.type &&

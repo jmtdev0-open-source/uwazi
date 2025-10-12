@@ -2,9 +2,8 @@ import moment from 'moment';
 import { PropertyValue, ProcessingContext } from './types';
 import { BasePropertyProcessor } from './BasePropertyProcessor';
 
-export class AdapterDateProcessor extends BasePropertyProcessor {
-  readonly name = 'AdapterDateProcessor';
-  readonly priority = 10;
+export class DatePropertyProcessor extends BasePropertyProcessor {
+  readonly name = 'DatePropertyProcessor';
   readonly propertyTypes = ['date', 'multidate', 'daterange', 'multidaterange'];
 
   protected formatProperty(property: any, context: ProcessingContext): PropertyValue[] {
@@ -198,9 +197,18 @@ export class AdapterDateProcessor extends BasePropertyProcessor {
 
       return {
         ...propertyValue,
-        formattedValue: `${fromFormatted[0]?.formattedValue || ''} ~ ${toFormatted[0]?.formattedValue || ''}`, // Version 2: Formatted range
-        localizedValue: `${fromFormatted[0]?.localizedValue || ''} ~ ${toFormatted[0]?.localizedValue || ''}`, // Version 3: Localized range
-        displayValue: `${fromFormatted[0]?.localizedValue || ''} ~ ${toFormatted[0]?.localizedValue || ''}`, // Default display (localized)
+        formattedValue: {
+          from: fromFormatted[0]?.formattedValue || '',
+          to: toFormatted[0]?.formattedValue || '',
+        },
+        localizedValue: {
+          from: fromFormatted[0]?.localizedValue || '',
+          to: toFormatted[0]?.localizedValue || '',
+        },
+        displayValue: {
+          from: fromFormatted[0]?.localizedValue || '',
+          to: toFormatted[0]?.localizedValue || '',
+        },
       };
     });
   }

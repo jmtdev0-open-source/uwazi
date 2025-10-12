@@ -1,4 +1,4 @@
-import { ClientSettings, Template } from 'app/apiResponseTypes';
+import { ClientSettings, Template, ClientThesaurus } from 'app/apiResponseTypes';
 import { ClientTranslationSchema } from 'app/istore';
 import { CompositionOptions } from 'app/V2/domain';
 
@@ -11,7 +11,31 @@ export interface PropertyValue {
   icon?: string;
   url?: string;
   error?: string;
-  [key: string]: any; // Allow additional properties
+  selected?: boolean;
+  // Media-specific properties
+  mimetype?: string;
+  size?: number;
+  duration?: number;
+  dimensions?: { width: number; height: number };
+  thumbnail?: string;
+  // Timeline-specific properties
+  timeFormatted?: string;
+  totalSeconds?: number;
+  index?: number;
+  // Geolocation-specific properties
+  lat?: number;
+  lon?: number;
+  precision?: number;
+  // Relationship-specific properties
+  entityId?: string;
+  entityTitle?: string;
+  templateName?: string;
+  templateId?: string;
+  // File-specific properties
+  filename?: string;
+  originalname?: string;
+  fileType?: string;
+  [key: string]: any;
 }
 
 export interface PropertyMetadata {
@@ -43,6 +67,11 @@ export interface PropertyMetadata {
 
 export interface FormattedProperty {
   values: PropertyValue[];
+  options?: PropertyValue[]; // All available options with selection state (edition mode for select fields)
+  timelines?: PropertyValue[]; // Timeline entries for media properties
+  coordinates?: PropertyValue[]; // Flattened coordinates for geolocation properties
+  relationships?: PropertyValue[]; // Flattened relationships
+  mediaFiles?: PropertyValue[]; // Flattened media files
   label: string;
   name: string;
   translatedLabel?: string;
@@ -50,6 +79,19 @@ export interface FormattedProperty {
   // Additional property data
   type: string;
   originalValue?: any;
+  // Media-specific metadata
+  fileMetadata?: {
+    totalSize: number;
+    totalDuration: number;
+    fileTypes: string[];
+    timelineCount: number;
+  };
+  // Geolocation-specific metadata
+  coordinateMetadata?: {
+    totalCoordinates: number;
+    bounds?: { north: number; south: number; east: number; west: number };
+    precision: number;
+  };
   [key: string]: any;
 }
 
@@ -61,6 +103,7 @@ export interface ProcessingContext {
   readonly translations: ClientTranslationSchema[];
   readonly settings: ClientSettings;
   readonly templates: Template[];
+  readonly thesauri: ClientThesaurus[];
 
   readonly dateFormat: string;
   readonly timezone?: string;
@@ -92,7 +135,6 @@ export interface ProcessingError {
 
 export interface PropertyTypeProcessor {
   readonly name: string;
-  readonly priority: number;
   readonly propertyTypes: string[];
 
   processBatch(

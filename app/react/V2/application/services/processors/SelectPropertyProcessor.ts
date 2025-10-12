@@ -4,10 +4,10 @@ import {
   PropertyTypeProcessor,
   ProcessingContext,
 } from './types';
+import { ClientThesaurus, ClientThesaurusValue } from 'app/apiResponseTypes';
 
-export class AdapterSelectProcessor implements PropertyTypeProcessor {
-  readonly name = 'AdapterSelectProcessor';
-  readonly priority = 15;
+export class SelectPropertyProcessor implements PropertyTypeProcessor {
+  readonly name = 'SelectPropertyProcessor';
   readonly propertyTypes = ['select', 'multiselect'];
 
   async processBatch(
@@ -16,7 +16,7 @@ export class AdapterSelectProcessor implements PropertyTypeProcessor {
   ): Promise<Map<string, FormattedProperty>> {
     const results = new Map<string, FormattedProperty>();
 
-    const { translations } = context;
+    const { translations, thesauri } = context;
     const selectFormatting = {
       showLabels: context.showLabels,
       showIcons: context.showIcons,
@@ -29,7 +29,21 @@ export class AdapterSelectProcessor implements PropertyTypeProcessor {
         const key = `${property._entityId}:${property._fieldName}`;
         const values = this.formatSelectProperty(property, selectFormatting, translations);
 
-        results.set(key, { ...property, values });
+        const formattedProperty: FormattedProperty = { ...property, values };
+
+        if (context.options.editionMode) {
+          const selectedValues = Array.isArray(property.value) ? property.value : [property.value];
+          const options = this.buildOptionsWithSelectionState(
+            property,
+            selectedValues,
+            thesauri,
+            translations,
+            selectFormatting
+          );
+          formattedProperty.options = options;
+        }
+
+        results.set(key, formattedProperty);
       } catch (error) {
         console.error(`Error processing select property ${property._fieldName}:`, error);
       }
@@ -94,5 +108,38 @@ export class AdapterSelectProcessor implements PropertyTypeProcessor {
         displayValue: property.value?.toString() || '',
       },
     ];
+  }
+
+  private findThesaurusByContentId(
+    contentId: string,
+    thesauri: ClientThesaurus[]
+  ): ClientThesaurus | undefined {
+    return thesauri.find(t => t._id === contentId);
+  }
+
+  private buildOptionsWithSelectionState(
+    property: any,
+    selectedValues: any[],
+    thesauri: ClientThesaurus[],
+    translations: Record<string, any>,
+    selectFormatting: any
+  ): PropertyValue[] {
+    const thesaurus = this.findThesaurusByContentId(property.content, thesauri);
+
+    if (!thesaurus || !thesaurus.values) {
+      return [];
+    }
+
+    return thesaurus.values.map((option: ClientThesaurusValue) => {
+      const isSelected = selectedValues.includes(option.id);
+      const translatedLabel = translations[option.label] || option.label;
+
+      return {
+        value: option.id,
+        label: selectFormatting.showLabels ? translatedLabel : undefined,
+        displayValue: selectFormatting.showLabels ? translatedLabel : '',
+        selected: isSelected,
+      };
+    });
   }
 }

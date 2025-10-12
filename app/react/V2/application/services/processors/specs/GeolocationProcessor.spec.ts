@@ -1,7 +1,7 @@
 import { entity } from '../../Sample';
 import { GeolocationProcessor } from '../GeolocationProcessor';
 import { ProcessingContext } from '../types';
-import { findGeolocationProperty } from './fixtures';
+import { findGeolocationProperty, processingContext } from './fixtures';
 
 describe('GeolocationProcessor', () => {
   let processor: GeolocationProcessor;
@@ -10,32 +10,10 @@ describe('GeolocationProcessor', () => {
   beforeEach(() => {
     processor = new GeolocationProcessor();
     mockContext = {
-      options: {
-        includeMetadata: true,
-        geolocationOptions: {
-          precision: 4,
-          format: 'decimal',
-          includeMapData: true,
-          combineGeolocation: false,
-        },
-      },
-      language: 'en',
+      ...processingContext,
       translations: [],
       settings: {} as any,
       templates: [],
-      // Flattened formatting options
-      dateFormat: 'YYYY-MM-DD',
-      timezone: undefined,
-      includeTime: false,
-      relativeTime: false,
-      locale: 'en',
-      showLabels: true,
-      showIcons: true,
-      showUrls: true,
-      includeOptions: true,
-      nestedLevel: 1,
-      includeEntityData: true,
-      includeTemplates: true,
       maxRelationships: undefined,
       includeFileMetadata: true,
       includeThumbnails: true,

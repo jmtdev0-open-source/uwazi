@@ -3,6 +3,7 @@ import { atomStore } from 'app/V2/atoms';
 import { settingsAtom } from 'app/V2/atoms/settingsAtom';
 import { templatesAtom } from 'app/V2/atoms/templatesAtom';
 import { translationsAtom } from 'app/V2/atoms/translationsAtoms';
+import { thesauriAtom } from 'app/V2/atoms/thesauriAtom';
 import {
   CompositionOptions,
   CompositionResult,
@@ -54,6 +55,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       settings: any;
       templates: any;
       translations: any;
+      thesauri: any;
     }
   ): ProcessingContext {
     return {
@@ -64,6 +66,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       translations: context.translations || [],
       settings: context.settings,
       templates: context.templates || [],
+      thesauri: context.thesauri || [],
 
       dateFormat:
         options.dateOptions?.dateFormat ||
@@ -124,6 +127,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         settings: atomStore.get(settingsAtom) || {},
         templates: atomStore.get(templatesAtom) || [],
         translations: atomStore.get(translationsAtom) || [],
+        thesauri: atomStore.get(thesauriAtom) || [],
       });
       const processor = new EntityAdapterProcessor(processingContext);
 
@@ -161,6 +165,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         settings: atomStore.get(settingsAtom) || {},
         templates: atomStore.get(templatesAtom) || [],
         translations: atomStore.get(translationsAtom) || [],
+        thesauri: atomStore.get(thesauriAtom) || [],
       });
       const processor = new EntityAdapterProcessor(processingContext);
 
@@ -223,6 +228,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         settings: atomStore.get(settingsAtom) || {},
         templates: atomStore.get(templatesAtom) || [],
         translations: atomStore.get(translationsAtom) || [],
+        thesauri: atomStore.get(thesauriAtom) || [],
       });
       const processor = new EntityAdapterProcessor(processingContext);
 
