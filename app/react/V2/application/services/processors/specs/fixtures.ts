@@ -13,34 +13,28 @@ export const processingContext: ProcessingContext = {
   translations: [],
   settings: {},
   templates: [],
-  dateFormatting: {
-    format: 'YYYY-MM-DD',
-    timezone: 'UTC',
-    includeTime: false,
-    relativeTime: false,
-    locale: 'en',
-  },
-  selectFormatting: {
-    showLabels: true,
-    showIcons: false,
-    showUrls: false,
-    includeOptions: false,
-  },
-  relationshipFormatting: {
-    nestedLevel: 1,
-    includeEntityData: false,
-    includeTemplates: false,
-  },
-  fileFormatting: {
-    includeFileMetadata: false,
-    includeThumbnails: false,
-  },
-  geolocationFormatting: {
-    precision: 4,
-    format: 'decimal',
-    includeMapData: false,
-    combineGeolocation: false,
-  },
+
+  // Flattened formatting options
+  dateFormat: 'YYYY-MM-DD',
+  timezone: 'UTC',
+  includeTime: false,
+  relativeTime: false,
+  locale: 'en',
+  showLabels: true,
+  showIcons: false,
+  showUrls: false,
+  includeOptions: false,
+  nestedLevel: 1,
+  includeEntityData: false,
+  includeTemplates: false,
+  maxRelationships: undefined,
+  includeFileMetadata: false,
+  includeThumbnails: false,
+  maxFileSize: undefined,
+  allowedTypes: undefined,
+  precision: 4,
+  includeMapData: false,
+  combineGeolocation: false,
 };
 
 // Common test properties for file processing
@@ -99,19 +93,13 @@ export const testInvalidFileProperty = {
 // Context variations for testing
 export const contextWithSmallLimit = {
   ...processingContext,
-  fileFormatting: {
-    ...processingContext.fileFormatting,
-    maxFileSize: 1000, // 1KB limit
-  },
+  maxFileSize: 1000, // 1KB limit
 };
 
 export const contextWithRestrictedTypes = {
   ...processingContext,
-  fileFormatting: {
-    ...processingContext.fileFormatting,
-    allowedTypes: ['image/jpeg', 'image/png'],
-    maxFileSize: undefined,
-  },
+  allowedTypes: ['image/jpeg', 'image/png'],
+  maxFileSize: undefined,
 };
 
 export const contextWithSkipFormatting = {

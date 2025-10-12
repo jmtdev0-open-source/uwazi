@@ -17,12 +17,6 @@ describe('RelationshipProcessor', () => {
 
     mockContext = {
       ...processingContext,
-      relationshipFormatting: {
-        nestedLevel: 1,
-        includeEntityData: false,
-        includeTemplates: false,
-        maxRelationships: undefined,
-      },
     };
   });
 
@@ -135,7 +129,7 @@ describe('RelationshipProcessor', () => {
 
   describe('Relationship Data Inclusion', () => {
     it('should include relationship data when includeEntityData is true', async () => {
-      mockContext.relationshipFormatting.includeEntityData = true;
+      const testContextWithData = { ...mockContext, includeEntityData: true };
 
       const properties = [
         {
@@ -157,7 +151,7 @@ describe('RelationshipProcessor', () => {
         },
       ];
 
-      const result = await processor.processBatch(properties, mockContext);
+      const result = await processor.processBatch(properties, testContextWithData);
 
       const relationshipResult = result.get('entity1:relationship')!;
       expect(relationshipResult.values[0].relationshipData).toBeDefined();
@@ -169,8 +163,7 @@ describe('RelationshipProcessor', () => {
     });
 
     it('should include template data when includeTemplates is true', async () => {
-      mockContext.relationshipFormatting.includeEntityData = true;
-      mockContext.relationshipFormatting.includeTemplates = true;
+      const testContextWithData2 = { ...mockContext, includeEntityData: true };
 
       const properties = [
         {
@@ -192,7 +185,7 @@ describe('RelationshipProcessor', () => {
         },
       ];
 
-      const result = await processor.processBatch(properties, mockContext);
+      const result = await processor.processBatch(properties, testContextWithData2);
 
       const relationshipResult = result.get('entity1:relationship')!;
       expect(relationshipResult.values[0].relationshipData.template).toBeDefined();
@@ -205,8 +198,6 @@ describe('RelationshipProcessor', () => {
 
   describe('Max Relationships Limit', () => {
     it('should limit relationships when maxRelationships is specified', async () => {
-      mockContext.relationshipFormatting.maxRelationships = 1;
-
       const properties = [
         {
           _entityId: 'entity1',
@@ -239,8 +230,6 @@ describe('RelationshipProcessor', () => {
 
   describe('Nested Level', () => {
     it('should add nested level information when nestedLevel > 1', async () => {
-      mockContext.relationshipFormatting.nestedLevel = 2;
-
       const properties = [
         {
           _entityId: 'entity1',
@@ -380,8 +369,7 @@ describe('RelationshipProcessor', () => {
     });
 
     it('should handle relationship data inclusion with entity metadata', async () => {
-      mockContext.relationshipFormatting.includeEntityData = true;
-      mockContext.relationshipFormatting.includeTemplates = true;
+      const testContextWithData3 = { ...mockContext, includeEntityData: true };
 
       const relationshipProperty = findRelationshipProperty(entity);
       expect(relationshipProperty).toBeDefined();
@@ -394,7 +382,7 @@ describe('RelationshipProcessor', () => {
           },
         ];
 
-        const result = await processor.processBatch(properties, mockContext);
+        const result = await processor.processBatch(properties, testContextWithData3);
 
         const relationshipResult = result.get('entity1:relationship')!;
         // The processor may not include relationship data for all cases

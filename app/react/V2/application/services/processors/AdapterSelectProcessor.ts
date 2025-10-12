@@ -16,7 +16,13 @@ export class AdapterSelectProcessor implements PropertyTypeProcessor {
   ): Promise<Map<string, FormattedProperty>> {
     const results = new Map<string, FormattedProperty>();
 
-    const { selectFormatting, translations } = context;
+    const { translations } = context;
+    const selectFormatting = {
+      showLabels: context.showLabels,
+      showIcons: context.showIcons,
+      showUrls: context.showUrls,
+      includeOptions: context.includeOptions,
+    };
 
     properties.forEach(property => {
       try {
@@ -68,7 +74,6 @@ export class AdapterSelectProcessor implements PropertyTypeProcessor {
           };
         }
 
-        // Apply translations if available
         const translatedLabel =
           translations[option.translateContext || option.label] || option.label;
 

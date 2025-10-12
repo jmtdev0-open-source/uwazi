@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLoaderData } from 'react-router';
+import { dateFieldsOptions } from 'app/V2/application/optionsPresets';
+import { Entity } from 'app/V2/domain/entities/Entity';
+import { getEntityCompositionUseCase } from 'app/V2/application/container/singletons';
 import {
   useEntityComposition,
   EntityCompositionProvider,
 } from '../../CustomHooks/useEntityComposition';
-import { CompositionServiceFactory } from 'app/V2/application';
-import { dateFieldsOptions } from 'app/V2/application/optionsPresets';
-import * as entitiesApi from '../../api/entities/index';
-import { Entity } from 'app/V2/domain/entities/Entity';
+
 
 const EntityPreviewContent = ({
   compositions,
@@ -251,7 +251,7 @@ const EntityPreviewWithLoader = () => {
     let mounted = true;
     const initializeService = async () => {
       try {
-        const uc = await CompositionServiceFactory.createCompositionService(entitiesApi);
+        const uc = await getEntityCompositionUseCase();
         if (!mounted) return;
         setUseCase(uc);
         setProviderReady(true);

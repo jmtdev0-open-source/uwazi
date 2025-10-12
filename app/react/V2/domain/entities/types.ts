@@ -140,16 +140,16 @@ export interface EntityPermissions {
 export interface ComposedTemplate {
   readonly _id: string;
   readonly name: string;
-  readonly label: string;
+  readonly label?: string;
   readonly translatedLabel?: string;
-  readonly color: string;
+  readonly color?: string;
   readonly properties: Map<string, ComposedProperty>;
   readonly commonProperties: Map<string, ComposedProperty>;
-  readonly entityViewPage: string;
+  readonly entityViewPage?: string;
 }
 
 export interface ComposedProperty {
-  readonly index: number;
+  readonly index?: number;
   readonly id: string;
   readonly name: string;
   readonly label: string;

@@ -53,9 +53,12 @@ export class RelationshipProcessor extends BasePropertyProcessor {
   }
 
   private formatRelationshipProperty(property: any, context: ProcessingContext): PropertyValue[] {
-    const { relationshipFormatting } = context;
-    const { nestedLevel, includeEntityData, includeTemplates, maxRelationships } =
-      relationshipFormatting;
+    const { nestedLevel, includeEntityData, includeTemplates, maxRelationships } = {
+      nestedLevel: context.nestedLevel,
+      includeEntityData: context.includeEntityData,
+      includeTemplates: context.includeTemplates,
+      maxRelationships: context.maxRelationships,
+    };
 
     const values = Array.isArray(property.value) ? property.value : [property.value];
     const isInherited = property.inherited === true;

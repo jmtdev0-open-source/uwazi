@@ -3,7 +3,6 @@ import { atomStore } from 'app/V2/atoms';
 import { settingsAtom } from 'app/V2/atoms/settingsAtom';
 import { templatesAtom } from 'app/V2/atoms/templatesAtom';
 import { translationsAtom } from 'app/V2/atoms/translationsAtoms';
-import { EntityRepository } from '../../infrastructure/repositories/EntityRepository';
 import {
   CompositionOptions,
   CompositionResult,
@@ -11,7 +10,9 @@ import {
   CompositionError,
 } from '../../domain/entities/types';
 import { FluentCompositionBuilder } from '../FluentCompositionBuilder';
-import { EntityAdapterFactory } from '../services/EntityAdapterFactory';
+import { EntityAdapterProcessor } from '../services/processors/EntityAdapterProcessor';
+import { ProcessingContext } from '../services/processors/types';
+import { EntityRepository } from '../../infrastructure/repositories/EntityRepository';
 
 export interface EntityCompositionUseCase {
   composeEntity(
@@ -42,7 +43,54 @@ export interface EntityCompositionUseCase {
 }
 
 export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
-  constructor(private readonly entityRepository: EntityRepository) {}
+  constructor(private readonly repository: EntityRepository) {}
+
+  private createProcessingContext(
+    options: CompositionOptions,
+    context: {
+      language: string;
+      userId?: string;
+      userPermissions?: string[];
+      settings: any;
+      templates: any;
+      translations: any;
+    }
+  ): ProcessingContext {
+    return {
+      options,
+      language: context.language,
+      userId: context.userId,
+      userPermissions: context.userPermissions,
+      translations: context.translations || [],
+      settings: context.settings,
+      templates: context.templates || [],
+
+      dateFormat:
+        options.dateOptions?.dateFormat ||
+        options.dateFormat ||
+        context.settings?.dateFormat ||
+        'YYYY-MM-DD',
+      timezone: options.dateOptions?.timezone,
+      includeTime: options.dateOptions?.includeTime || false,
+      relativeTime: options.dateOptions?.relativeTime || false,
+      locale: options.dateOptions?.locale || context.language,
+      showLabels: options.selectOptions?.showLabels !== false,
+      showIcons: options.selectOptions?.showIcons || false,
+      showUrls: options.selectOptions?.showUrls || false,
+      includeOptions: options.selectOptions?.includeOptions || false,
+      nestedLevel: options.relationshipOptions?.nestedLevel || 1,
+      includeEntityData: options.relationshipOptions?.includeEntityData || false,
+      includeTemplates: options.relationshipOptions?.includeTemplates || false,
+      maxRelationships: options.relationshipOptions?.maxRelationships,
+      includeFileMetadata: options.fileOptions?.includeFileMetadata || false,
+      includeThumbnails: options.fileOptions?.includeThumbnails || false,
+      maxFileSize: options.fileOptions?.maxFileSize,
+      allowedTypes: options.fileOptions?.allowedTypes,
+      precision: options.geolocationOptions?.precision || 6,
+      includeMapData: options.geolocationOptions?.includeMapData || false,
+      combineGeolocation: options.geolocationOptions?.combineGeolocation || false,
+    };
+  }
 
   async composeEntity(
     entityId: string,
@@ -50,8 +98,16 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     context: { userId?: string; userPermissions?: string[]; headers?: IncomingHttpHeaders }
   ): Promise<CompositionResult> {
     try {
-      const entity = await this.entityRepository.findBySharedId(entityId, options, context.headers);
-      if (!entity) {
+      const response = await this.repository.getBySharedId(
+        {
+          sharedId: entityId,
+          language: 'en',
+          omitRelationships: true,
+        },
+        context.headers
+      );
+
+      if (!response || response.length === 0) {
         return {
           entity: null,
           success: false,
@@ -59,8 +115,9 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         };
       }
 
-      // Use the new EntityAdapterProcessor approach
-      const processor = EntityAdapterFactory.createPipeline(options, {
+      const entity = response[0];
+
+      const processingContext = this.createProcessingContext(options, {
         language: entity.language || 'en',
         userId: context.userId,
         userPermissions: context.userPermissions,
@@ -68,6 +125,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         templates: atomStore.get(templatesAtom) || [],
         translations: atomStore.get(translationsAtom) || [],
       });
+      const processor = new EntityAdapterProcessor(processingContext);
 
       const result = await processor.processEntity(entity);
 
@@ -90,10 +148,13 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
     try {
-      const entities = await this.entityRepository.findByIds(entityIds, options);
+      const entities = await this.repository.getBySharedIds({
+        sharedIds: entityIds,
+        language: 'en',
+        omitRelationships: true,
+      });
 
-      // Use the new EntityAdapterProcessor approach for batch processing
-      const processor = EntityAdapterFactory.createPipeline(options, {
+      const processingContext = this.createProcessingContext(options, {
         language: entities[0]?.language || 'en',
         userId: context.userId,
         userPermissions: context.userPermissions,
@@ -101,6 +162,7 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
         templates: atomStore.get(templatesAtom) || [],
         translations: atomStore.get(translationsAtom) || [],
       });
+      const processor = new EntityAdapterProcessor(processingContext);
 
       const result = await processor.processAllEntities(entities);
 
@@ -142,25 +204,27 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
     context: { userId?: string; userPermissions?: string[] }
   ): Promise<BatchCompositionResult> {
     try {
-      const entities = await this.entityRepository.findByIds(entityIds, {});
+      const entities = await this.repository.getBySharedIds({
+        sharedIds: entityIds,
+        language: 'en',
+        omitRelationships: true,
+      });
 
-      // Use the card view pipeline for optimized card rendering
-      const processor = EntityAdapterFactory.createCardViewPipeline(
-        {
-          onlyForCards: true,
-          includeTemplate: true,
-          includeMetadata: true,
-          includePropertyMetadata: false, // Skip heavy metadata for cards
-        },
-        {
-          language: entities[0]?.language || 'en',
-          userId: context.userId,
-          userPermissions: context.userPermissions,
-          settings: atomStore.get(settingsAtom) || {},
-          templates: atomStore.get(templatesAtom) || [],
-          translations: atomStore.get(translationsAtom) || [],
-        }
-      );
+      const cardOptions = {
+        onlyForCards: true,
+        includeTemplate: true,
+        includeMetadata: true,
+        includePropertyMetadata: false, // Skip heavy metadata for cards
+      };
+      const processingContext = this.createProcessingContext(cardOptions, {
+        language: entities[0]?.language || 'en',
+        userId: context.userId,
+        userPermissions: context.userPermissions,
+        settings: atomStore.get(settingsAtom) || {},
+        templates: atomStore.get(templatesAtom) || [],
+        translations: atomStore.get(translationsAtom) || [],
+      });
+      const processor = new EntityAdapterProcessor(processingContext);
 
       const result = await processor.processAllEntities(entities);
 

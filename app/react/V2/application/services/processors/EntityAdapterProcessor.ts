@@ -1,6 +1,6 @@
-import { flatMap, groupBy, map, sortBy, uniq } from 'lodash';
+import { flatMap, groupBy, map, sortBy } from 'lodash';
 import { Entity } from 'app/V2/domain';
-import { ComposedTemplate } from 'app/V2/domain/entities/types';
+import { ComposedProperty, ComposedTemplate } from 'app/V2/domain/entities/types';
 import {
   FormattedProperty,
   ProcessingContext,
@@ -8,6 +8,13 @@ import {
   PropertyTypeProcessor,
 } from './types';
 import { AdapterTemplateProcessor } from './AdapterTemplateProcessor';
+import { AdapterDateProcessor } from './AdapterDateProcessor';
+import { AdapterSelectProcessor } from './AdapterSelectProcessor';
+import { GeolocationProcessor } from './GeolocationProcessor';
+import { RelationshipProcessor } from './RelationshipProcessor';
+import { FileProcessor } from './FileProcessor';
+import { DefaultPropertyProcessor } from './DefaultPropertyProcessor';
+import { EntitySchema } from 'api/migrations/migrations/143-parse-numeric-fields/types';
 
 export class EntityAdapterProcessor {
   private readonly context: ProcessingContext;
@@ -17,20 +24,33 @@ export class EntityAdapterProcessor {
   constructor(context: ProcessingContext) {
     this.context = context;
     this.templateProcessor = new AdapterTemplateProcessor(context);
+
+    this.initializeProcessors();
   }
 
-  registerProcessor(processor: PropertyTypeProcessor): void {
-    if ('initialize' in processor && typeof processor.initialize === 'function') {
-      (processor as any).initialize(this.context);
-    }
+  private initializeProcessors(): void {
+    const dateProcessor = new AdapterDateProcessor();
+    const selectProcessor = new AdapterSelectProcessor();
+    const geolocationProcessor = new GeolocationProcessor();
+    const relationshipProcessor = new RelationshipProcessor();
+    const fileProcessor = new FileProcessor();
+    const defaultProcessor = new DefaultPropertyProcessor();
 
-    processor.propertyTypes.forEach(type => {
-      this.processors.set(type, processor);
-    });
+    dateProcessor.propertyTypes.forEach(type => this.processors.set(type, dateProcessor));
+    selectProcessor.propertyTypes.forEach(type => this.processors.set(type, selectProcessor));
+    geolocationProcessor.propertyTypes.forEach(type =>
+      this.processors.set(type, geolocationProcessor)
+    );
+    relationshipProcessor.propertyTypes.forEach(type =>
+      this.processors.set(type, relationshipProcessor)
+    );
+    fileProcessor.propertyTypes.forEach(type => this.processors.set(type, fileProcessor));
+
+    this.processors.set('any', defaultProcessor);
   }
 
   private collectPropertiesByType(entities: Partial<Entity>[]): Map<string, any[]> {
-    const propertiesByType = new Map<string, any[]>();
+    const propertiesByType = new Map<string, ComposedProperty[]>();
 
     const allProperties = flatMap(entities, entity =>
       map(Object.entries(entity.rawEntity?.metadata || {}), ([name, property]) => {
@@ -46,7 +66,7 @@ export class EntityAdapterProcessor {
     const groupedProperties = groupBy(allProperties, 'type');
 
     Object.entries(groupedProperties).forEach(([type, properties]) => {
-      propertiesByType.set(type, properties);
+      propertiesByType.set(type, properties as ComposedProperty[]);
     });
 
     return propertiesByType;
@@ -63,7 +83,7 @@ export class EntityAdapterProcessor {
     };
   }
 
-  async processAllEntities(entities: any[]): Promise<{
+  async processAllEntities(entities: EntitySchema[]): Promise<{
     entities: Entity[];
     errors: ProcessingError[];
   }> {
@@ -73,10 +93,10 @@ export class EntityAdapterProcessor {
 
     let propertiesByType: Map<string, any[]> | null = new Map();
     try {
-      const templatesIds = uniq(entities.map(entity => entity.template));
-
-      const templatesData = this.templateProcessor.formatTemplateData(templatesIds);
+      const templateIds = entities.map(entity => entity.template as string);
+      const templatesData = this.templateProcessor.formatTemplateData(templateIds);
       const templatesById = new Map<string, ComposedTemplate>();
+
       templatesData.forEach(template => {
         templatesById.set(template._id, template);
       });
@@ -84,7 +104,7 @@ export class EntityAdapterProcessor {
       formattedEntities = resultEntities.map(entity => ({
         _id: entity._id,
         title: entity.title,
-        template: templatesById.get(entity.template),
+        template: templatesById.get(entity.template as string),
         rawEntity: entity,
         metadata: [],
       }));
@@ -98,7 +118,7 @@ export class EntityAdapterProcessor {
       });
     } catch (error) {
       allErrors.push({
-        field: 'EntityAdapterProcessor',
+        entityId: 'batch',
         error: error instanceof Error ? error.message : 'EntityAdapterProcessor error',
         timestamp: new Date(),
       });
@@ -129,7 +149,6 @@ export class EntityAdapterProcessor {
     propertiesByType: Map<string, any[]>
   ): Promise<Map<string, FormattedProperty>> {
     const allResults = new Map<string, FormattedProperty>();
-    const processorsUsed: string[] = [];
 
     await Promise.all(
       Array.from(propertiesByType.entries()).map(async ([propertyType, properties]) => {
@@ -139,7 +158,6 @@ export class EntityAdapterProcessor {
           results.forEach((property, key) => {
             allResults.set(key, property);
           });
-          processorsUsed.push(processor.name);
         }
       })
     );

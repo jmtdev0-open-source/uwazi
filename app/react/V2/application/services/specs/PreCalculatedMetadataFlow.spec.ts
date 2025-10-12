@@ -1,6 +1,8 @@
 import { CompositionOptions } from 'app/V2/domain';
-import { EntityAdapterFactory } from '../EntityAdapterFactory';
+import { EntityAdapterProcessor } from '../processors/EntityAdapterProcessor';
+import { ProcessingContext } from '../processors/types';
 import { settings, singleEntity, templates, translations } from './fixtures';
+import { EntitySchema } from 'shared/types/entityType';
 
 describe('Pre-Calculated Metadata Flow', () => {
   let testEntities: any[];
@@ -27,14 +29,38 @@ describe('Pre-Calculated Metadata Flow', () => {
 
   describe('Entity Processing Flow', () => {
     it('should process entities successfully', async () => {
-      const processor = EntityAdapterFactory.createPipeline(testOptions, {
+      const processingContext: ProcessingContext = {
+        options: testOptions,
         language: 'en',
         userId: 'user123',
         userPermissions: ['read', 'write'],
-        settings,
-        templates,
-        translations,
-      });
+        settings: settings as any,
+        templates: templates as any,
+        translations: translations as any,
+
+        // Flattened formatting options
+        dateFormat: testOptions.dateOptions?.dateFormat || 'YYYY-MM-DD',
+        timezone: testOptions.dateOptions?.timezone,
+        includeTime: testOptions.dateOptions?.includeTime || false,
+        relativeTime: testOptions.dateOptions?.relativeTime || false,
+        locale: testOptions.dateOptions?.locale || 'en',
+        showLabels: testOptions.selectOptions?.showLabels !== false,
+        showIcons: testOptions.selectOptions?.showIcons || false,
+        showUrls: testOptions.selectOptions?.showUrls || false,
+        includeOptions: testOptions.selectOptions?.includeOptions || false,
+        nestedLevel: testOptions.relationshipOptions?.nestedLevel || 1,
+        includeEntityData: testOptions.relationshipOptions?.includeEntityData || false,
+        includeTemplates: testOptions.relationshipOptions?.includeTemplates || false,
+        maxRelationships: testOptions.relationshipOptions?.maxRelationships,
+        includeFileMetadata: testOptions.fileOptions?.includeFileMetadata || false,
+        includeThumbnails: testOptions.fileOptions?.includeThumbnails || false,
+        maxFileSize: testOptions.fileOptions?.maxFileSize,
+        allowedTypes: testOptions.fileOptions?.allowedTypes,
+        precision: testOptions.geolocationOptions?.precision || 6,
+        includeMapData: testOptions.geolocationOptions?.includeMapData || false,
+        combineGeolocation: testOptions.geolocationOptions?.combineGeolocation || false,
+      };
+      const processor = new EntityAdapterProcessor(processingContext);
 
       const result = await processor.processAllEntities(testEntities);
 
@@ -49,14 +75,38 @@ describe('Pre-Calculated Metadata Flow', () => {
 
   describe('Error Handling', () => {
     it('should handle processing errors gracefully', async () => {
-      const processor = EntityAdapterFactory.createPipeline(testOptions, {
+      const processingContext: ProcessingContext = {
+        options: testOptions,
         language: 'en',
         userId: 'user123',
         userPermissions: ['read', 'write'],
-        settings,
-        templates,
-        translations,
-      });
+        settings: settings as any,
+        templates: templates as any,
+        translations: translations as any,
+
+        // Flattened formatting options
+        dateFormat: testOptions.dateOptions?.dateFormat || 'YYYY-MM-DD',
+        timezone: testOptions.dateOptions?.timezone,
+        includeTime: testOptions.dateOptions?.includeTime || false,
+        relativeTime: testOptions.dateOptions?.relativeTime || false,
+        locale: testOptions.dateOptions?.locale || 'en',
+        showLabels: testOptions.selectOptions?.showLabels !== false,
+        showIcons: testOptions.selectOptions?.showIcons || false,
+        showUrls: testOptions.selectOptions?.showUrls || false,
+        includeOptions: testOptions.selectOptions?.includeOptions || false,
+        nestedLevel: testOptions.relationshipOptions?.nestedLevel || 1,
+        includeEntityData: testOptions.relationshipOptions?.includeEntityData || false,
+        includeTemplates: testOptions.relationshipOptions?.includeTemplates || false,
+        maxRelationships: testOptions.relationshipOptions?.maxRelationships,
+        includeFileMetadata: testOptions.fileOptions?.includeFileMetadata || false,
+        includeThumbnails: testOptions.fileOptions?.includeThumbnails || false,
+        maxFileSize: testOptions.fileOptions?.maxFileSize,
+        allowedTypes: testOptions.fileOptions?.allowedTypes,
+        precision: testOptions.geolocationOptions?.precision || 6,
+        includeMapData: testOptions.geolocationOptions?.includeMapData || false,
+        combineGeolocation: testOptions.geolocationOptions?.combineGeolocation || false,
+      };
+      const processor = new EntityAdapterProcessor(processingContext);
 
       const invalidEntities = [
         {
@@ -67,7 +117,9 @@ describe('Pre-Calculated Metadata Flow', () => {
         },
       ];
 
-      const result = await processor.processAllEntities(invalidEntities);
+      const result = await processor.processAllEntities(
+        invalidEntities as unknown as EntitySchema[]
+      );
 
       expect(result).toBeDefined();
       expect(result.errors).toBeDefined();

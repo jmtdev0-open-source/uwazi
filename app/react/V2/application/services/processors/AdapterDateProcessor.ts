@@ -12,18 +12,18 @@ export class AdapterDateProcessor extends BasePropertyProcessor {
       return this.createRawValues(property);
     }
 
-    const dateFormat = this.getCustomFormat(context, 'date', context.dateFormatting.format);
+    const dateFormat = this.getCustomFormat(context, 'date', context.dateFormat);
     const dateFormatting = {
-      ...context.dateFormatting,
       format: dateFormat,
+      timezone: context.timezone,
+      includeTime: context.includeTime,
+      relativeTime: context.relativeTime,
+      locale: context.locale,
     };
 
     return this.formatDateProperty(property, dateFormatting);
   }
 
-  /**
-   * Create raw values for date properties
-   */
   protected createRawValues(property: any): PropertyValue[] {
     if (property.type === 'date' || property.type === 'multidate') {
       return this.createRawSingleValues(property);
@@ -33,13 +33,9 @@ export class AdapterDateProcessor extends BasePropertyProcessor {
       return this.createRawRangeValues(property);
     }
 
-    // Fallback to base implementation
     return super.createRawValues(property);
   }
 
-  /**
-   * Create raw single date values
-   */
   private createRawSingleValues(property: any): PropertyValue[] {
     const values = Array.isArray(property.value) ? property.value : [property.value];
     return values.map((propertyValue: PropertyValue) => {
@@ -59,9 +55,6 @@ export class AdapterDateProcessor extends BasePropertyProcessor {
     });
   }
 
-  /**
-   * Create raw date range values
-   */
   private createRawRangeValues(property: any): PropertyValue[] {
     const ranges = Array.isArray(property.value) ? property.value : [property.value];
     return ranges.map((propertyValue: PropertyValue) => {
@@ -84,9 +77,6 @@ export class AdapterDateProcessor extends BasePropertyProcessor {
     });
   }
 
-  /**
-   * Check if date formatting should be skipped
-   */
   protected shouldSkipFormatting(context: ProcessingContext, formatKey?: string): boolean {
     if (formatKey === 'date') {
       return context.options.dateOptions?.formatDate === false;
@@ -94,9 +84,6 @@ export class AdapterDateProcessor extends BasePropertyProcessor {
     return false;
   }
 
-  /**
-   * Get custom date format from options
-   */
   protected getCustomFormat(
     context: ProcessingContext,
     formatKey: string,

@@ -61,42 +61,31 @@ export interface ProcessingContext {
   readonly translations: ClientTranslationSchema[];
   readonly settings: ClientSettings;
   readonly templates: Template[];
-  // Pre-calculated formatting utilities
-  readonly dateFormatting: {
-    format: string;
-    timezone?: string;
-    includeTime: boolean;
-    relativeTime: boolean;
-    locale: string;
-  };
-  readonly selectFormatting: {
-    showLabels: boolean;
-    showIcons: boolean;
-    showUrls: boolean;
-    includeOptions: boolean;
-  };
-  readonly relationshipFormatting: {
-    nestedLevel: number;
-    includeEntityData: boolean;
-    includeTemplates: boolean;
-    maxRelationships?: number;
-  };
-  readonly fileFormatting: {
-    includeFileMetadata: boolean;
-    includeThumbnails: boolean;
-    maxFileSize?: number;
-    allowedTypes?: string[];
-  };
-  readonly geolocationFormatting: {
-    precision: number;
-    format: string;
-    includeMapData: boolean;
-    combineGeolocation: boolean;
-  };
+
+  readonly dateFormat: string;
+  readonly timezone?: string;
+  readonly includeTime: boolean;
+  readonly relativeTime: boolean;
+  readonly locale: string;
+  readonly showLabels: boolean;
+  readonly showIcons: boolean;
+  readonly showUrls: boolean;
+  readonly includeOptions: boolean;
+  readonly nestedLevel: number;
+  readonly includeEntityData: boolean;
+  readonly includeTemplates: boolean;
+  readonly maxRelationships?: number;
+  readonly includeFileMetadata: boolean;
+  readonly includeThumbnails: boolean;
+  readonly maxFileSize?: number;
+  readonly allowedTypes?: string[];
+  readonly precision: number;
+  readonly includeMapData: boolean;
+  readonly combineGeolocation: boolean;
 }
 
 export interface ProcessingError {
-  readonly field: string;
+  readonly entityId: string;
   readonly error: string;
   readonly timestamp: Date;
 }

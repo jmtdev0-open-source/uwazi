@@ -1,14 +1,10 @@
-/**
- * Dependency Injection Container
- * Manages dependencies between layers
- */
-import { EntityRepository } from '../../infrastructure/repositories/EntityRepository';
 import { EntityCompositionUseCase } from '../useCases/EntityCompositionUseCase';
 import { EntityCompositionUseCaseImpl } from '../useCases/EntityCompositionUseCase';
+import { EntityRepository } from '../../infrastructure/repositories/EntityRepository';
 
 export class DependencyContainer {
   private static instance: DependencyContainer;
-  private entityRepository: EntityRepository | null = null;
+  private repository: EntityRepository | null = null;
   private entityCompositionUseCase: EntityCompositionUseCase | null = null;
 
   private constructor() {}
@@ -20,26 +16,26 @@ export class DependencyContainer {
     return DependencyContainer.instance;
   }
 
-  setEntityRepository(repository: EntityRepository): void {
-    this.entityRepository = repository;
+  setRepository(repository: EntityRepository): void {
+    this.repository = repository;
   }
 
-  getEntityRepository(): EntityRepository {
-    if (!this.entityRepository) {
-      throw new Error('EntityRepository not registered');
+  getRepository(): EntityRepository {
+    if (!this.repository) {
+      throw new Error('Repository not registered');
     }
-    return this.entityRepository;
+    return this.repository;
   }
 
   getEntityCompositionUseCase(): EntityCompositionUseCase {
     if (!this.entityCompositionUseCase) {
-      this.entityCompositionUseCase = new EntityCompositionUseCaseImpl(this.getEntityRepository());
+      this.entityCompositionUseCase = new EntityCompositionUseCaseImpl(this.getRepository());
     }
     return this.entityCompositionUseCase;
   }
 
   reset(): void {
-    this.entityRepository = null;
+    this.repository = null;
     this.entityCompositionUseCase = null;
   }
 }

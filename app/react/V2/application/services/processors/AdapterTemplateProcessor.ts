@@ -11,37 +11,42 @@ export class AdapterTemplateProcessor {
     this.context = context;
   }
 
-  /**
-   * Format template data with translations and property definitions
-   */
   formatTemplateData(templatesIds: string[]): ComposedTemplate[] {
     return this.context.templates
       .filter((template: Template) => templatesIds.includes(template._id))
       .map((template: Template) => {
-        const templateTranslations = this.getTemplateTranslations(template);
+        const templateTranslations = this.context.options.translateLabels
+          ? this.getTemplateTranslations(template)
+          : undefined;
         const { formattedProperties, formattedCommonProperties } = this.formatTemplateProperties(
           template,
           templateTranslations
         );
 
+        let templateData = {};
+
+        if (this.context.options.includeTemplate) {
+          const label =
+            templateTranslations !== undefined
+              ? templateTranslations.values[template.name]
+              : template.name;
+
+          templateData = {
+            label,
+            color: template.color || '#000000',
+            entityViewPage: template.entityViewPage || '',
+          };
+        }
         return {
           _id: template._id,
           name: template.name,
-          label: String(template.label),
-          ...(templateTranslations !== undefined
-            ? { translatedLabel: templateTranslations.values[template.name] }
-            : {}),
-          color: template.color || '#000000',
-          entityViewPage: template.entityViewPage || '',
+          ...templateData,
           commonProperties: formattedCommonProperties,
           properties: formattedProperties,
         };
       });
   }
 
-  /**
-   * Get template translations for the current language
-   */
   private getTemplateTranslations(template: Template): ClientTranslationContextSchema | undefined {
     if (!this.context.options.translateLabels || !this.context.translations) {
       return undefined;
@@ -52,9 +57,6 @@ export class AdapterTemplateProcessor {
       ?.contexts.find(t => t.id === template._id);
   }
 
-  /**
-   * Format template properties (both regular and common properties)
-   */
   private formatTemplateProperties(
     template: Template,
     templateTranslations?: ClientTranslationContextSchema
@@ -65,11 +67,9 @@ export class AdapterTemplateProcessor {
     const formattedProperties = new Map<string, any>();
     const formattedCommonProperties = new Map<string, any>();
 
-    // Filter properties based on includeFields option
     const properties = this.filterPropertiesByIncludeFields(template.properties);
     const commonProperties = this.filterPropertiesByIncludeFields(template.commonProperties);
 
-    // Format and set properties with index
     this.formatAndSetProperties(properties, formattedProperties, templateTranslations);
     this.formatAndSetProperties(commonProperties, formattedCommonProperties, templateTranslations);
 
@@ -79,9 +79,6 @@ export class AdapterTemplateProcessor {
     };
   }
 
-  /**
-   * Filter properties based on includeFields option
-   */
   private filterPropertiesByIncludeFields(properties?: PropertySchema[]): PropertySchema[] {
     if (!properties) return [];
 
@@ -94,9 +91,6 @@ export class AdapterTemplateProcessor {
     return properties;
   }
 
-  /**
-   * Format and set properties in the target map with index
-   */
   private formatAndSetProperties(
     properties: PropertySchema[],
     targetMap: Map<string, any>,
@@ -108,9 +102,6 @@ export class AdapterTemplateProcessor {
     });
   }
 
-  /**
-   * Format a single property definition with translations
-   */
   private formatPropertyDefinition(
     property: PropertySchema,
     templateTranslations?: ClientTranslationContextSchema
@@ -122,8 +113,8 @@ export class AdapterTemplateProcessor {
       type: property.type,
       ...(templateTranslations !== undefined
         ? {
-          translatedLabel: templateTranslations.values[property.label] || property.label,
-        }
+            translatedLabel: templateTranslations.values[property.label] || property.label,
+          }
         : {}),
     };
   }

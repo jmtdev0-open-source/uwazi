@@ -1,20 +1,16 @@
-/**
- * Composition Service Factory
- * Handles dependency injection setup for the composition system
- */
+import { EntityRepository } from 'app/V2/infrastructure/repositories/EntityRepository';
 import { DependencyContainer } from '../container/DependencyContainer';
-import { EntityRepositoryImpl } from '../../infrastructure/repositories/EntityRepositoryImpl';
 import { EntityCompositionUseCase } from '../useCases/EntityCompositionUseCase';
 
 export class CompositionServiceFactory {
   private static container: DependencyContainer | null = null;
 
-  static async createCompositionService(apiClient: any): Promise<EntityCompositionUseCase> {
+  static async createCompositionService(
+    repository: EntityRepository
+  ): Promise<EntityCompositionUseCase> {
     if (!this.container) {
       this.container = DependencyContainer.getInstance();
-
-      // Set up the repository with the provided API client
-      this.container.setEntityRepository(new EntityRepositoryImpl(apiClient));
+      this.container.setRepository(repository);
     }
 
     return this.container.getEntityCompositionUseCase();

@@ -23,35 +23,29 @@ describe('FileProcessor', () => {
       translations: [],
       settings: {} as any,
       templates: [],
-      dateFormatting: {
-        format: 'YYYY-MM-DD',
-        includeTime: false,
-        relativeTime: false,
-        locale: 'en',
-      },
-      selectFormatting: {
-        showLabels: true,
-        showIcons: true,
-        showUrls: true,
-        includeOptions: true,
-      },
-      relationshipFormatting: {
-        nestedLevel: 1,
-        includeEntityData: true,
-        includeTemplates: true,
-      },
-      fileFormatting: {
-        includeFileMetadata: true,
-        includeThumbnails: true,
-        maxFileSize: 1000000,
-        allowedTypes: ['image/png', 'video/mp4'],
-      },
-      geolocationFormatting: {
-        precision: 4,
-        format: 'decimal',
-        includeMapData: false,
-        combineGeolocation: false,
-      },
+
+      // Flattened formatting options
+      dateFormat: 'YYYY-MM-DD',
+      timezone: undefined,
+      includeTime: false,
+      relativeTime: false,
+      locale: 'en',
+      showLabels: true,
+      showIcons: false,
+      showUrls: false,
+      includeOptions: false,
+      nestedLevel: 1,
+      includeEntityData: false,
+      includeTemplates: false,
+      maxRelationships: undefined,
+      includeFileMetadata: true,
+      includeThumbnails: true,
+      maxFileSize: 1000000,
+      allowedTypes: ['image/png', 'video/mp4'],
+      precision: 6,
+      includeMapData: false,
+      combineGeolocation: false,
+      // Additional flattened properties
     };
   });
 
@@ -177,10 +171,10 @@ describe('FileProcessor', () => {
             includeFileMetadata: false,
           },
         },
-        fileFormatting: {
-          ...mockContext.fileFormatting,
-          includeFileMetadata: false,
-        },
+        includeFileMetadata: false,
+        includeThumbnails: mockContext.includeThumbnails,
+        maxFileSize: mockContext.maxFileSize,
+        allowedTypes: mockContext.allowedTypes,
       };
 
       const result = (processor as any).formatProperty(property, contextWithSkipFormatting);
@@ -339,10 +333,10 @@ describe('FileProcessor', () => {
         // Test with smaller maxFileSize to trigger validation
         const contextWithSmallLimit = {
           ...mockContext,
-          fileFormatting: {
-            ...mockContext.fileFormatting,
-            maxFileSize: 1000000, // Smaller than document size
-          },
+          includeFileMetadata: mockContext.includeFileMetadata,
+          includeThumbnails: mockContext.includeThumbnails,
+          maxFileSize: 1000000, // Smaller than document size
+          allowedTypes: mockContext.allowedTypes,
         };
 
         const result = (processor as any).formatProperty(documentProperty, contextWithSmallLimit);
@@ -367,11 +361,10 @@ describe('FileProcessor', () => {
         // Test with restricted allowedTypes and no size limit
         const contextWithRestrictedTypes = {
           ...mockContext,
-          fileFormatting: {
-            ...mockContext.fileFormatting,
-            allowedTypes: ['image/png', 'video/mp4'], // Exclude audio/mpeg
-            maxFileSize: undefined, // Remove size limit
-          },
+          includeFileMetadata: mockContext.includeFileMetadata,
+          includeThumbnails: mockContext.includeThumbnails,
+          maxFileSize: undefined, // Remove size limit
+          allowedTypes: ['image/png', 'video/mp4'], // Exclude audio/mpeg
         };
 
         const result = (processor as any).formatProperty(audioProperty, contextWithRestrictedTypes);

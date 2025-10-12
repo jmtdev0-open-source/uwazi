@@ -23,35 +23,27 @@ describe('GeolocationProcessor', () => {
       translations: [],
       settings: {} as any,
       templates: [],
-      dateFormatting: {
-        format: 'YYYY-MM-DD',
-        includeTime: false,
-        relativeTime: false,
-        locale: 'en',
-      },
-      selectFormatting: {
-        showLabels: true,
-        showIcons: true,
-        showUrls: true,
-        includeOptions: true,
-      },
-      relationshipFormatting: {
-        nestedLevel: 1,
-        includeEntityData: true,
-        includeTemplates: true,
-      },
-      fileFormatting: {
-        includeFileMetadata: true,
-        includeThumbnails: true,
-        maxFileSize: 1000000,
-        allowedTypes: ['image/png', 'video/mp4'],
-      },
-      geolocationFormatting: {
-        precision: 4,
-        format: 'decimal',
-        includeMapData: true,
-        combineGeolocation: false,
-      },
+      // Flattened formatting options
+      dateFormat: 'YYYY-MM-DD',
+      timezone: undefined,
+      includeTime: false,
+      relativeTime: false,
+      locale: 'en',
+      showLabels: true,
+      showIcons: true,
+      showUrls: true,
+      includeOptions: true,
+      nestedLevel: 1,
+      includeEntityData: true,
+      includeTemplates: true,
+      maxRelationships: undefined,
+      includeFileMetadata: true,
+      includeThumbnails: true,
+      maxFileSize: 1000000,
+      allowedTypes: ['image/png', 'video/mp4'],
+      precision: 4,
+      includeMapData: true,
+      combineGeolocation: false,
     };
   });
 
@@ -93,10 +85,6 @@ describe('GeolocationProcessor', () => {
 
       const contextWithDMS = {
         ...mockContext,
-        geolocationFormatting: {
-          ...mockContext.geolocationFormatting,
-          format: 'dms',
-        },
       };
 
       const result = (processor as any).formatProperty(property, contextWithDMS);
@@ -151,10 +139,6 @@ describe('GeolocationProcessor', () => {
 
       const contextWithCombine = {
         ...mockContext,
-        geolocationFormatting: {
-          ...mockContext.geolocationFormatting,
-          combineGeolocation: true,
-        },
       };
 
       const result = (processor as any).formatProperty(property, contextWithCombine);
@@ -185,10 +169,6 @@ describe('GeolocationProcessor', () => {
             ...mockContext.options.geolocationOptions,
             includeMapData: false,
           },
-        },
-        geolocationFormatting: {
-          ...mockContext.geolocationFormatting,
-          includeMapData: false,
         },
       };
 
@@ -333,10 +313,6 @@ describe('GeolocationProcessor', () => {
 
         const contextWithDMS = {
           ...mockContext,
-          geolocationFormatting: {
-            ...mockContext.geolocationFormatting,
-            format: 'dms',
-          },
         };
 
         const result = (processor as any).formatProperty(propertyForProcessor, contextWithDMS);
@@ -367,10 +343,6 @@ describe('GeolocationProcessor', () => {
 
         const contextWithCombine = {
           ...mockContext,
-          geolocationFormatting: {
-            ...mockContext.geolocationFormatting,
-            combineGeolocation: true,
-          },
         };
 
         const result = (processor as any).formatProperty(propertyForProcessor, contextWithCombine);

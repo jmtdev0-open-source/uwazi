@@ -1,5 +1,5 @@
 import { CompositionServiceFactory } from '../services/CompositionServiceFactory';
-import * as entitiesApi from '../../api/entities/index';
+import { EntityRepositoryImpl } from 'app/V2/infrastructure';
 
 let _entityCompositionUseCase: any = null;
 let _initializationPromise: Promise<any> | null = null;
@@ -13,7 +13,9 @@ export const getEntityCompositionUseCase = async (): Promise<any> => {
     return _initializationPromise;
   }
 
-  _initializationPromise = CompositionServiceFactory.createCompositionService(entitiesApi);
+  _initializationPromise = CompositionServiceFactory.createCompositionService(
+    new EntityRepositoryImpl()
+  );
   return _initializationPromise;
 };
 

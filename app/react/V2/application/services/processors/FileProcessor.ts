@@ -50,7 +50,12 @@ export class FileProcessor extends BasePropertyProcessor {
   }
 
   private formatFileProperty(property: any, context: ProcessingContext): PropertyValue[] {
-    const fileFormatting = context.fileFormatting;
+    const fileFormatting = {
+      includeFileMetadata: context.includeFileMetadata,
+      includeThumbnails: context.includeThumbnails,
+      maxFileSize: context.maxFileSize,
+      allowedTypes: context.allowedTypes,
+    };
     const values = Array.isArray(property.value) ? property.value : [property.value];
 
     return values.map((file: any) => {

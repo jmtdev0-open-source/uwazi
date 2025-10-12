@@ -61,7 +61,11 @@ export class GeolocationProcessor extends BasePropertyProcessor {
   }
 
   private formatGeolocationProperty(property: any, context: ProcessingContext): PropertyValue[] {
-    const geolocationFormatting = context.geolocationFormatting;
+    const geolocationFormatting = {
+      precision: context.precision,
+      includeMapData: context.includeMapData,
+      combineGeolocation: context.combineGeolocation,
+    };
     const values = Array.isArray(property.value) ? property.value : [property.value];
 
     const formattedValues = values.map((geo: any) => {
@@ -103,7 +107,8 @@ export class GeolocationProcessor extends BasePropertyProcessor {
       let label: string;
       let formattedValue: any;
 
-      if (geolocationFormatting.format === 'dms') {
+      if (false) {
+        // Format option removed in simplified context
         const latDMS = this.toDMS(lat, 'lat');
         const lonDMS = this.toDMS(lon, 'lon');
         label = `${latDMS}, ${lonDMS}`;

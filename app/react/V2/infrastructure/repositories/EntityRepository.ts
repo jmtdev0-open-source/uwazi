@@ -1,17 +1,22 @@
-/**
- * Entity Repository Interface
- * Abstraction for data access operations
- */
 import { IncomingHttpHeaders } from 'http';
-import { CompositionOptions } from '../../domain/entities/types';
-import { EntitySchema } from 'api/migrations/migrations/143-parse-numeric-fields/types';
+import { EntitySchema } from 'shared/types/entityType';
 
 export interface EntityRepository {
-  findBySharedId(
-    entityId: string,
-    options?: CompositionOptions,
+  getBySharedId(
+    options: {
+      sharedId: string;
+      language: string;
+      omitRelationships?: boolean;
+    },
     headers?: IncomingHttpHeaders
-  ): Promise<EntitySchema | null>;
-  findByIds(entityIds: string[], options?: CompositionOptions): Promise<EntitySchema[]>;
+  ): Promise<EntitySchema[]>;
   save(entity: EntitySchema): Promise<EntitySchema>;
+  getBySharedIds(
+    options: {
+      sharedIds: string[];
+      language: string;
+      omitRelationships?: boolean;
+    },
+    headers?: IncomingHttpHeaders
+  ): Promise<EntitySchema[]>;
 }
