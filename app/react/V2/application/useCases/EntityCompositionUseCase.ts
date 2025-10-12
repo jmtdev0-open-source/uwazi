@@ -44,7 +44,7 @@ export interface EntityCompositionUseCase {
 }
 
 export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
-  constructor(private readonly repository: EntityRepository) {}
+  constructor(private readonly repository: EntityRepository) { }
 
   private createProcessingContext(
     options: CompositionOptions,
@@ -92,6 +92,12 @@ export class EntityCompositionUseCaseImpl implements EntityCompositionUseCase {
       precision: options.geolocationOptions?.precision || 6,
       includeMapData: options.geolocationOptions?.includeMapData || false,
       combineGeolocation: options.geolocationOptions?.combineGeolocation || false,
+
+      flattenStructures: options.flattenStructures || false,
+      flattenRelationships: options.flattenRelationships || false,
+      flattenCoordinates: options.flattenCoordinates || false,
+      flattenMediaFiles: options.flattenMediaFiles || false,
+      flattenTimelines: options.flattenTimelines || false,
     };
   }
 

@@ -33,7 +33,7 @@ export class SelectPropertyProcessor implements PropertyTypeProcessor {
 
         if (context.options.editionMode) {
           const selectedValues = Array.isArray(property.value) ? property.value : [property.value];
-          const options = this.buildOptionsWithSelectionState(
+          const options = this.buildFlattenedOptions(
             property,
             selectedValues,
             thesauri,
@@ -117,7 +117,7 @@ export class SelectPropertyProcessor implements PropertyTypeProcessor {
     return thesauri.find(t => t._id === contentId);
   }
 
-  private buildOptionsWithSelectionState(
+  private buildFlattenedOptions(
     property: any,
     selectedValues: any[],
     thesauri: ClientThesaurus[],
@@ -130,16 +130,33 @@ export class SelectPropertyProcessor implements PropertyTypeProcessor {
       return [];
     }
 
-    return thesaurus.values.map((option: ClientThesaurusValue) => {
-      const isSelected = selectedValues.includes(option.id);
-      const translatedLabel = translations[option.label] || option.label;
+    const flattenedOptions: PropertyValue[] = [];
 
-      return {
+    thesaurus.values.forEach((option: ClientThesaurusValue) => {
+      flattenedOptions.push({
         value: option.id,
-        label: selectFormatting.showLabels ? translatedLabel : undefined,
-        displayValue: selectFormatting.showLabels ? translatedLabel : '',
-        selected: isSelected,
-      };
+        label: selectFormatting.showLabels ? (translations[option.label] || option.label) : undefined,
+        displayValue: selectFormatting.showLabels ? (translations[option.label] || option.label) : '',
+        selected: selectedValues.includes(option.id),
+        group: null,
+        level: 0
+      });
+
+      if (option.values && Array.isArray(option.values)) {
+        option.values.forEach((subOption: any) => {
+          flattenedOptions.push({
+            value: subOption.id,
+            label: selectFormatting.showLabels ? (translations[subOption.label] || subOption.label) : undefined,
+            displayValue: selectFormatting.showLabels ? (translations[subOption.label] || subOption.label) : '',
+            selected: selectedValues.includes(subOption.id),
+            group: option.id,
+            level: 1
+          });
+        });
+      }
     });
+
+    return flattenedOptions;
   }
+
 }

@@ -125,6 +125,12 @@ export interface ProcessingContext {
   readonly precision: number;
   readonly includeMapData: boolean;
   readonly combineGeolocation: boolean;
+
+  readonly flattenStructures: boolean;
+  readonly flattenRelationships: boolean;
+  readonly flattenCoordinates: boolean;
+  readonly flattenMediaFiles: boolean;
+  readonly flattenTimelines: boolean;
 }
 
 export interface ProcessingError {

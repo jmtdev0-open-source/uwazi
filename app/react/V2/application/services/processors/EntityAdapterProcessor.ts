@@ -13,6 +13,7 @@ import { SelectPropertyProcessor } from './SelectPropertyProcessor';
 import { GeolocationProcessor } from './GeolocationProcessor';
 import { RelationshipProcessor } from './RelationshipProcessor';
 import { FileProcessor } from './FileProcessor';
+import { MediaPropertyProcessor } from './MediaPropertyProcessor';
 import { DefaultPropertyProcessor } from './DefaultPropertyProcessor';
 import { EntitySchema } from 'api/migrations/migrations/143-parse-numeric-fields/types';
 
@@ -34,6 +35,7 @@ export class EntityAdapterProcessor {
     const geolocationProcessor = new GeolocationProcessor();
     const relationshipProcessor = new RelationshipProcessor();
     const fileProcessor = new FileProcessor();
+    const mediaProcessor = new MediaPropertyProcessor();
     const defaultProcessor = new DefaultPropertyProcessor();
 
     dateProcessor.propertyTypes.forEach(type => this.processors.set(type, dateProcessor));
@@ -45,6 +47,7 @@ export class EntityAdapterProcessor {
       this.processors.set(type, relationshipProcessor)
     );
     fileProcessor.propertyTypes.forEach(type => this.processors.set(type, fileProcessor));
+    mediaProcessor.propertyTypes.forEach(type => this.processors.set(type, mediaProcessor));
 
     this.processors.set('any', defaultProcessor);
   }

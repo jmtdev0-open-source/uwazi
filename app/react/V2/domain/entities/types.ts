@@ -95,7 +95,12 @@ export interface CompositionOptions {
   translateLabels?: boolean; // Translate labels
   includeRawMetadata?: boolean; // Include raw values
 
-  // Type-specific options (nested for flexibility)
+  flattenStructures?: boolean; // Enable structure flattening
+  flattenRelationships?: boolean; // Flatten relationship data
+  flattenCoordinates?: boolean; // Flatten geolocation coordinates
+  flattenMediaFiles?: boolean; // Flatten media file metadata
+  flattenTimelines?: boolean; // Flatten timeline data
+
   dateOptions?: DateCompositionOptions;
   selectOptions?: SelectCompositionOptions;
   relationshipOptions?: RelationshipCompositionOptions;
